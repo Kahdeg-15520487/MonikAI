@@ -148,6 +148,8 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="app.manifest" />
+    <Resource Include="natsuki\define_pos.json" />
+    <Resource Include="monika\define_pos.json" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -213,6 +215,50 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="FodyWeavers.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="natsuki\1-n.png" />
+    <Resource Include="natsuki\1.png" />
+    <Resource Include="natsuki\1a-n.png" />
+    <Resource Include="natsuki\1a.png" />
+    <Resource Include="natsuki\a-n.png" />
+    <Resource Include="natsuki\a.png" />
+    <Resource Include="natsuki\b-n.png" />
+    <Resource Include="natsuki\b.png" />
+    <Resource Include="natsuki\c-n.png" />
+    <Resource Include="natsuki\c.png" />
+    <Resource Include="natsuki\d-n.png" />
+    <Resource Include="natsuki\d.png" />
+    <Resource Include="natsuki\e-n.png" />
+    <Resource Include="natsuki\e.png" />
+    <Resource Include="natsuki\f-n.png" />
+    <Resource Include="natsuki\f.png" />
+    <Resource Include="natsuki\g-n.png" />
+    <Resource Include="natsuki\g.png" />
+    <Resource Include="natsuki\h-n.png" />
+    <Resource Include="natsuki\h.png" />
+    <Resource Include="natsuki\i-n.png" />
+    <Resource Include="natsuki\i.png" />
+    <Resource Include="natsuki\j-n.png" />
+    <Resource Include="natsuki\j.png" />
+    <Resource Include="natsuki\k-n.png" />
+    <Resource Include="natsuki\k.png" />
+    <Resource Include="natsuki\l-n.png" />
+    <Resource Include="natsuki\l.png" />
+    <Resource Include="natsuki\m-n.png" />
+    <Resource Include="natsuki\m.png" />
+    <Resource Include="natsuki\n-n.png" />
+    <Resource Include="natsuki\n.png" />
+    <Resource Include="natsuki\o-n.png" />
+    <Resource Include="natsuki\o.png" />
+    <Resource Include="natsuki\p-n.png" />
+    <Resource Include="natsuki\p.png" />
+    <Resource Include="natsuki\q-n.png" />
+    <Resource Include="natsuki\q.png" />
+    <Resource Include="natsuki\r-n.png" />
+    <Resource Include="natsuki\r.png" />
+    <Resource Include="natsuki\s-n.png" />
+    <Resource Include="natsuki\s.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.2.0.0\build\dotnet\Fody.targets" Condition="Exists('..\packages\Fody.2.0.0\build\dotnet\Fody.targets')" />

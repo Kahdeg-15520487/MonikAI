@@ -76,6 +76,15 @@ namespace MonikAI
                 index++;
             }
 
+            for (int i = 0; i < this.comboBoxCharacter.Items.Count; i++)
+            {
+                if (((ComboBoxItem)this.comboBoxCharacter.Items[i]).Content.ToString() == MonikaiSettings.Default.Character)
+                {
+                    this.comboBoxCharacter.SelectedIndex = i;
+                    break;
+                }
+            }
+
             // Focus window
             this.Focus();
             this.Activate();
@@ -109,6 +118,8 @@ namespace MonikAI
             MonikaiSettings.Default.Screen =
                 Screen.AllScreens.First(x => this.comboBoxScreen.SelectedItem.ToString().Contains(x.DeviceName))
                     .DeviceName;
+
+            MonikaiSettings.Default.Character = ((ComboBoxItem)this.comboBoxCharacter.SelectedItem).Content.ToString();
 
             MonikaiSettings.Default.Save();
         }
@@ -169,7 +180,7 @@ namespace MonikAI
                     newState.Where(
                         x =>
                             x.Item2 &&
-                            !new[] {"LeftCtrl", "RightCtrl", "LeftAlt", "RightAlt", "LeftShift", "RightShift"}.Contains(
+                            !new[] { "LeftCtrl", "RightCtrl", "LeftAlt", "RightAlt", "LeftShift", "RightShift" }.Contains(
                                 x.Item1)).ToList();
                 invalid = otherKeysPressed.Count != 1;
 
@@ -227,7 +238,7 @@ namespace MonikAI
         {
             return Enum.GetNames(typeof(Key)).Select(x =>
             {
-                var key = (Key) Enum.Parse(typeof(Key), x);
+                var key = (Key)Enum.Parse(typeof(Key), x);
                 return new Tuple<string, bool>(x, key != Key.None && Keyboard.IsKeyDown(key));
             });
         }

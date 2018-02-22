@@ -202,5 +202,17 @@ namespace MonikAI {
                 this["DpiWorkaround"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("monika")]
+        public string Character {
+            get {
+                return ((string)(this["Character"]));
+            }
+            set {
+                this["Character"] = value;
+            }
+        }
     }
 }
