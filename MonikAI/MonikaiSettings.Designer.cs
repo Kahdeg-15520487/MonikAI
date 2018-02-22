@@ -8,210 +8,274 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace MonikAI {
-    
-    
+namespace MonikAI
+{
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.5.0.0")]
-    internal sealed partial class MonikaiSettings : global::System.Configuration.ApplicationSettingsBase {
-        
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.3.0.0")]
+    internal sealed partial class MonikaiSettings : global::System.Configuration.ApplicationSettingsBase
+    {
         private static MonikaiSettings defaultInstance = ((MonikaiSettings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new MonikaiSettings())));
-        
-        public static MonikaiSettings Default {
-            get {
+
+        public static MonikaiSettings Default
+        {
+            get
+            {
                 return defaultInstance;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("2018-01-01")]
-        public global::System.DateTime LastStarted {
-            get {
+        public global::System.DateTime LastStarted
+        {
+            get
+            {
                 return ((global::System.DateTime)(this["LastStarted"]));
             }
-            set {
+            set
+            {
                 this["LastStarted"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool FirstLaunch {
-            get {
+        public bool FirstLaunch
+        {
+            get
+            {
                 return ((bool)(this["FirstLaunch"]));
             }
-            set {
+            set
+            {
                 this["FirstLaunch"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string UserName {
-            get {
+        public string UserName
+        {
+            get
+            {
                 return ((string)(this["UserName"]));
             }
-            set {
+            set
+            {
                 this["UserName"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool PotatoPC {
-            get {
+        public bool PotatoPC
+        {
+            get
+            {
                 return ((bool)(this["PotatoPC"]));
             }
-            set {
+            set
+            {
                 this["PotatoPC"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string Screen {
-            get {
+        public string Screen
+        {
+            get
+            {
                 return ((string)(this["Screen"]));
             }
-            set {
+            set
+            {
                 this["Screen"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool AutoUpdate {
-            get {
+        public bool AutoUpdate
+        {
+            get
+            {
                 return ((bool)(this["AutoUpdate"]));
             }
-            set {
+            set
+            {
                 this["AutoUpdate"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool LeftAlign {
-            get {
+        public bool LeftAlign
+        {
+            get
+            {
                 return ((bool)(this["LeftAlign"]));
             }
-            set {
+            set
+            {
                 this["LeftAlign"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("CTRL-SHIFT-F10")]
-        public string HotkeySettings {
-            get {
+        public string HotkeySettings
+        {
+            get
+            {
                 return ((string)(this["HotkeySettings"]));
             }
-            set {
+            set
+            {
                 this["HotkeySettings"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("CTRL-SHIFT-F11")]
-        public string HotkeyHide {
-            get {
+        public string HotkeyHide
+        {
+            get
+            {
                 return ((string)(this["HotkeyHide"]));
             }
-            set {
+            set
+            {
                 this["HotkeyHide"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("CTRL-SHIFT-F12")]
-        public string HotkeyExit {
-            get {
+        public string HotkeyExit
+        {
+            get
+            {
                 return ((string)(this["HotkeyExit"]));
             }
-            set {
+            set
+            {
                 this["HotkeyExit"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool AutoStart {
-            get {
+        public bool AutoStart
+        {
+            get
+            {
                 return ((bool)(this["AutoStart"]));
             }
-            set {
+            set
+            {
                 this["AutoStart"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool IsColdShutdown {
-            get {
+        public bool IsColdShutdown
+        {
+            get
+            {
                 return ((bool)(this["IsColdShutdown"]));
             }
-            set {
+            set
+            {
                 this["IsColdShutdown"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string LastUpdateConfig {
-            get {
+        public string LastUpdateConfig
+        {
+            get
+            {
                 return ((string)(this["LastUpdateConfig"]));
             }
-            set {
+            set
+            {
                 this["LastUpdateConfig"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("1")]
-        public double ScaleModifier {
-            get {
+        public double ScaleModifier
+        {
+            get
+            {
                 return ((double)(this["ScaleModifier"]));
             }
-            set {
+            set
+            {
                 this["ScaleModifier"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool DpiWorkaround {
-            get {
+        public bool DpiWorkaround
+        {
+            get
+            {
                 return ((bool)(this["DpiWorkaround"]));
             }
-            set {
+            set
+            {
                 this["DpiWorkaround"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("monika")]
-        public string Character {
-            get {
+        public string Character
+        {
+            get
+            {
                 return ((string)(this["Character"]));
             }
-            set {
+            set
+            {
                 this["Character"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool FirstTimeWithUpdater
+        {
+            get
+            {
+                return ((bool)(this["FirstTimeWithUpdater"]));
+            }
+            set
+            {
+                this["FirstTimeWithUpdater"] = value;
             }
         }
     }
