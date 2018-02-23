@@ -1,3 +1,8 @@
+// File: MainWindow.xaml.cs
+// Created: 20.02.2018
+// 
+// See <summary> tags for more information.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -41,26 +46,19 @@ namespace MonikAI
         private readonly BitmapImage backgroundDay;
         private readonly BitmapImage backgroundNight;
 
+        private readonly Dictionary<string, Func<string>> placeholders = new Dictionary<string, Func<string>>
+        {
+            {
+                "{name}", () => { return MonikaiSettings.Default.UserName; }
+            },
+            {
+                "{date}", () => { return DateTime.Now.Date.ToString(); }
+            }
+        };
+
         private readonly Queue<IEnumerable<Expression>> saying = new Queue<IEnumerable<Expression>>();
         private bool applicationRunning = true;
         private Thickness basePictureThickness, baseTextThickness;
-        private IBehaviour idleBehaviour;
-
-        private readonly Dictionary<string, Func<string>> placeholders = new Dictionary<string, Func<string>>()
-        {
-            {
-                "{name}", () =>
-                {
-                    return MonikaiSettings.Default.UserName;
-                }
-            },
-            {
-                "{date}", () =>
-                {
-                    return DateTime.Now.Date.ToString();
-                }
-            }
-        };
 
         private List<IBehaviour> behaviours;
 
@@ -79,7 +77,8 @@ namespace MonikAI
             scaleBaseTextBoxFontSize;
 
         private SettingsWindow settingsWindow;
-        private Updater updater;
+        private readonly Updater updater;
+        private readonly Task updaterInitTask;
 
         private string character;
 
@@ -95,7 +94,7 @@ namespace MonikAI
             // Perform update and download routines
             this.updater = new Updater();
             this.updater.PerformUpdatePost();
-            Task.Run(async () => await this.updater.Init());
+            this.updaterInitTask = Task.Run(async () => await this.updater.Init());
 
             this.settingsWindow = new SettingsWindow(this);
 
@@ -117,6 +116,7 @@ namespace MonikAI
             // Init picture box content
             //var tt = File.ReadAllText("pack://application:,,,/MonikAI;component/" + character + "/define_pos.json");
             StreamResourceInfo sri = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/MonikAI;component/" + character + "/define_pos.json"));
+
             if (sri != null)
             {
                 using (var sr = new StreamReader(sri.Stream))
@@ -195,6 +195,7 @@ namespace MonikAI
                     MonikaiSettings.Default.Save();
                 }
 
+                this.updaterInitTask?.Wait();
                 await this.updater.PerformUpdate(this);
 
                 //MessageBox.Show("This is a testing build, please do me the favor and don't distribute it right now.");
@@ -215,7 +216,8 @@ namespace MonikAI
                         new Expression("Anyway, looks like someone was nice enough to make me a little window!", "d"),
                         new Expression("Be sure to thank them for me, okay?", "k"),
                         new Expression("Ah, wait a second.", "c"),
-                        new Expression("I see... Well, if you want me to go away for now, you can use CTRL-SHIFT-F12, okay?", "b"),
+                        new Expression(
+                            "I see... Well, if you want me to go away for now, you can use CTRL-SHIFT-F12, okay?", "b"),
                         new Expression("But you wouldn't do that, right?", "r"),
                         new Expression("Okay, I guess that's it for now. Don't forget, I'm watching you! Ahaha~")
                     });
@@ -242,7 +244,8 @@ namespace MonikAI
                         this.Say(new[]
                         {
                             new Expression(
-                                "Don't forget, if you want me to leave just press " + MonikaiSettings.Default.HotkeyExit + "!", "i"),
+                                "Don't forget, if you want me to leave just press " +
+                                MonikaiSettings.Default.HotkeyExit + "!", "i"),
                             new Expression("But you're not going to do that, right?", "o")
                         });
                     }
@@ -258,7 +261,7 @@ namespace MonikAI
                 //{
                 //    new[]
                 //    {
-                //        new Expression("♫ ... and in your reality ... ♫", "r")
+                //        new Expression("â™« ... and in your reality ... â™«", "r")
                 //    },
                 //    new[]
                 //    {
@@ -314,6 +317,7 @@ namespace MonikAI
                 await Task.Run(async () =>
                 {
                     var nextBlink = DateTime.Now + TimeSpan.FromSeconds(random.Next(7, 50));
+
                     while (this.applicationRunning)
                     {
                         if (this.behaviours != null)
@@ -350,9 +354,7 @@ namespace MonikAI
         public static bool IsNight => DateTime.Now.Hour > 20 || DateTime.Now.Hour < 7;
 
         public string CurrentFace { get; private set; } = "a";
-
         public bool Speaking { get; private set; }
-
         public Screen MonikaScreen { get; set; }
 
         public void SetupScale()
@@ -378,7 +380,7 @@ namespace MonikAI
                 this.baseTextThickness = this.textPicture.Margin;
             }
 
-            var scaleRatio = (this.MonikaScreen.Bounds.Height / 1080.0) * MonikaiSettings.Default.ScaleModifier;
+            var scaleRatio = this.MonikaScreen.Bounds.Height / 1080.0 * MonikaiSettings.Default.ScaleModifier;
             this.Width = this.scaleBaseWidth * scaleRatio;
             this.Height = this.scaleBaseHeight * scaleRatio;
             this.facePicture.Width = this.scaleBaseFacePictureWidth * scaleRatio;
@@ -398,9 +400,9 @@ namespace MonikAI
         private void RegisterBehaviours(object sender, EventArgs eventArgs)
         {
             this.behaviours = Assembly.GetExecutingAssembly()
-                .GetTypes()
-                .Where(x => x.IsClass && typeof(IBehaviour).IsAssignableFrom(x))
-                .Select(x => (IBehaviour)Activator.CreateInstance(x)).ToList();
+                                      .GetTypes()
+                                      .Where(x => x.IsClass && typeof(IBehaviour).IsAssignableFrom(x))
+                                      .Select(x => (IBehaviour)Activator.CreateInstance(x)).ToList();
 
             foreach (var behaviour in this.behaviours)
             {
@@ -421,8 +423,9 @@ namespace MonikAI
 
             if (!MainWindow.IsForegroundFullScreen(screen))
             {
-                var taskbars = this.FindDockedTaskBars(screen, out bool isLeft);
+                var taskbars = this.FindDockedTaskBars(screen, out var isLeft);
                 var taskbar = taskbars.FirstOrDefault(x => x.X != 0 || x.Y != 0 || x.Width != 0 || x.Height != 0);
+
                 if (taskbar != default(Rectangle))
                 {
                     if (taskbar.Width >= taskbar.Height)
@@ -570,14 +573,18 @@ namespace MonikAI
 
                     // Speak
                     var text = this.saying.Dequeue();
+
                     foreach (var line in text)
                     {
-                        string completedText = PlaceholderHandling(line.Text);
+                        var completedText = this.PlaceholderHandling(line.Text);
                         this.SetMonikaFace(line.Face);
                         for (var i = 0; i < completedText.Length; i++)
                         {
                             var i1 = i;
-                            this.textBox.Dispatcher.Invoke(() => { this.textBox.Text = completedText.Substring(0, i1 + 1); });
+                            this.textBox.Dispatcher.Invoke(() =>
+                            {
+                                this.textBox.Text = completedText.Substring(0, i1 + 1);
+                            });
                             await Task.Delay(25);
                         }
 
@@ -648,6 +655,7 @@ namespace MonikAI
             isLeft = false;
 
             var dockedRectCounter = 0;
+
             if (!tmpScrn.Bounds.Equals(tmpScrn.WorkingArea))
             {
                 var leftDockedWidth = Math.Abs(Math.Abs(tmpScrn.Bounds.Left) - Math.Abs(tmpScrn.WorkingArea.Left));
@@ -764,6 +772,7 @@ namespace MonikAI
                                                         (point.X < rectangle.X ? rectangle.X : rectangle.Right) -
                                                         point.X, 2) +
                                                     Math.Pow(rectangle.Y - point.Y, 2));
+
                                             if (distance < FADE)
                                             {
                                                 opacity = MainWindow.Lerp(1.0, MIN_OP, distance / FADE);
@@ -786,11 +795,10 @@ namespace MonikAI
                             rectangle = new Rectangle((int)this.Left, (int)this.Top, (int)this.Width,
                                 (int)this.Height);
                             // Detect exit key combo
-                            hidePressed = AreKeysPressed(MonikaiSettings.Default.HotkeyHide);
-                            exitPressed = AreKeysPressed(MonikaiSettings.Default.HotkeyExit);
-                            settingsPressed = AreKeysPressed(MonikaiSettings.Default.HotkeySettings);
+                            hidePressed = this.AreKeysPressed(MonikaiSettings.Default.HotkeyHide);
+                            exitPressed = this.AreKeysPressed(MonikaiSettings.Default.HotkeyExit);
+                            settingsPressed = this.AreKeysPressed(MonikaiSettings.Default.HotkeySettings);
                         });
-
 
                         if (hidePressed && (DateTime.Now - this.lastKeyComboTime).TotalSeconds > 2)
                         {
@@ -894,5 +902,3 @@ namespace MonikAI
             public readonly int right;
             public readonly int bottom;
         }
-    }
-}
