@@ -52,5 +52,8 @@
     <Setting Name="Character" Type="System.String" Scope="User">
       <Value Profile="(Default)">monika</Value>
     </Setting>
+    <Setting Name="IdleWait" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Regular</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

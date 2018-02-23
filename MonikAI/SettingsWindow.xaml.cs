@@ -84,6 +84,25 @@ namespace MonikAI
                     break;
                 }
             }
+            Object selObj = null;
+
+            foreach (string item in this.comboBoxIdle.Items)
+            {
+                if (item.ToLower() == MonikaiSettings.Default.IdleWait.ToLower())
+                {
+                    selObj = item;
+                    break;
+                }
+            }
+
+            //For some reason it's broken. Did they manually edit the settings? Lets force regular.
+            if (selObj == null)
+            {
+                selObj = this.comboBoxIdle.Items[2];
+                MonikaiSettings.Default.IdleWait = "Regular";
+            }
+
+            this.comboBoxIdle.SelectedItem = selObj;
 
             // Focus window
             this.Focus();
@@ -168,6 +187,7 @@ namespace MonikAI
             var timer = DateTime.Now;
             var state = SettingsWindow.GetKeyboardState().ToList();
             var invalid = true;
+
             while ((DateTime.Now - timer).TotalSeconds < 0.8)
             {
                 var newState = SettingsWindow.GetKeyboardState().ToList();
@@ -228,6 +248,7 @@ namespace MonikAI
         private async Task WaitForKeyChange()
         {
             var state = SettingsWindow.GetKeyboardState().ToList();
+
             while (state.SequenceEqual(SettingsWindow.GetKeyboardState()))
             {
                 await Task.Delay(10);
@@ -277,6 +298,16 @@ namespace MonikAI
             // Scale modifier
             MonikaiSettings.Default.ScaleModifier = this.sliderScale.Value;
             this.mainWindow.SetupScale();
+        }
+
+        private void comboBoxIdle_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (this.comboBoxIdle.SelectedItem == null)
+            {
+                return;
+            }
+
+            MonikaiSettings.Default.IdleWait = (string)this.comboBoxIdle.SelectedItem;
         }
     }
 }
