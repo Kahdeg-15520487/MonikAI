@@ -30,8 +30,7 @@
         <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Margin="10,85,0,0"><Run Text="Make me bigger/smaller, if you want:"/></TextBlock>
         <Slider x:Name="sliderScale" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="234,85,0,0" Width="224" Maximum="2.75" Value="1" Minimum="0.25" SmallChange="0.05" LargeChange="0.25" ValueChanged="sliderScale_ValueChanged"/>
         <Button x:Name="buttonWorkaround" Content="Help, I'm not seeing Monika!" HorizontalAlignment="Left" VerticalAlignment="Top" Width="214" Margin="10,283,0,0" Click="Button_Click_4"/>
-		<Label Content="Character" HorizontalAlignment="Left" Margin="249,115,0,0" VerticalAlignment="Top"/>
-		<ComboBox x:Name="comboBoxCharacter" HorizontalAlignment="Left" Margin="338,118,0,0" VerticalAlignment="Top" Width="120">
+		<ComboBox x:Name="comboBoxCharacter" HorizontalAlignment="Left" Margin="338,145,0,0" VerticalAlignment="Top" Width="120">
 			<ComboBoxItem Content="monika"/>
 			<ComboBoxItem Content="natsuki"/>
 		</ComboBox>
@@ -43,5 +42,6 @@
             <System:String>Short</System:String>
             <System:String>Very Short</System:String>
         </ComboBox>
+		<TextBlock HorizontalAlignment="Left" Margin="234,147,0,0" TextWrapping="Wrap" Text="Choose your Doki" VerticalAlignment="Top"/>
 	</Grid>
 </Window>

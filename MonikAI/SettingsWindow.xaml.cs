@@ -84,6 +84,7 @@ namespace MonikAI
                     break;
                 }
             }
+
             Object selObj = null;
 
             foreach (string item in this.comboBoxIdle.Items)
