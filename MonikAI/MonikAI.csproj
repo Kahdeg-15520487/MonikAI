@@ -149,6 +149,8 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="app.manifest" />
+    <Resource Include="sayori\define_pos.json" />
+    <Resource Include="yuri\define_pos.json" />
     <Resource Include="natsuki\define_pos.json" />
     <Resource Include="monika\define_pos.json" />
     <None Include="packages.config" />
@@ -260,6 +262,95 @@
     <Resource Include="natsuki\r.png" />
     <Resource Include="natsuki\s-n.png" />
     <Resource Include="natsuki\s.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="yuri\1-n.png" />
+    <Resource Include="yuri\1.png" />
+    <Resource Include="yuri\1a-n.png" />
+    <Resource Include="yuri\1a.png" />
+    <Resource Include="yuri\a-n.png" />
+    <Resource Include="yuri\a.png" />
+    <Resource Include="yuri\b-n.png" />
+    <Resource Include="yuri\b.png" />
+    <Resource Include="yuri\c-n.png" />
+    <Resource Include="yuri\c.png" />
+    <Resource Include="yuri\d-n.png" />
+    <Resource Include="yuri\d.png" />
+    <Resource Include="yuri\e-n.png" />
+    <Resource Include="yuri\e.png" />
+    <Resource Include="yuri\f-n.png" />
+    <Resource Include="yuri\f.png" />
+    <Resource Include="yuri\g-n.png" />
+    <Resource Include="yuri\g.png" />
+    <Resource Include="yuri\h-n.png" />
+    <Resource Include="yuri\h.png" />
+    <Resource Include="yuri\i-n.png" />
+    <Resource Include="yuri\i.png" />
+    <Resource Include="yuri\j-n.png" />
+    <Resource Include="yuri\j.png" />
+    <Resource Include="yuri\k-n.png" />
+    <Resource Include="yuri\k.png" />
+    <Resource Include="yuri\l-n.png" />
+    <Resource Include="yuri\l.png" />
+    <Resource Include="yuri\m-n.png" />
+    <Resource Include="yuri\m.png" />
+    <Resource Include="yuri\n-n.png" />
+    <Resource Include="yuri\n.png" />
+    <Resource Include="yuri\o-n.png" />
+    <Resource Include="yuri\o.png" />
+    <Resource Include="yuri\p-n.png" />
+    <Resource Include="yuri\p.png" />
+    <Resource Include="yuri\q-n.png" />
+    <Resource Include="yuri\q.png" />
+    <Resource Include="yuri\r-n.png" />
+    <Resource Include="yuri\r.png" />
+    <Resource Include="yuri\s-n.png" />
+    <Resource Include="yuri\s.png" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="sayori\1-n.png" />
+    <Resource Include="sayori\1.png" />
+    <Resource Include="sayori\1a-n.png" />
+    <Resource Include="sayori\1a.png" />
+    <Resource Include="sayori\a-n.png" />
+    <Resource Include="sayori\a.png" />
+    <Resource Include="sayori\b-n.png" />
+    <Resource Include="sayori\b.png" />
+    <Resource Include="sayori\c-n.png" />
+    <Resource Include="sayori\c.png" />
+    <Resource Include="sayori\d-n.png" />
+    <Resource Include="sayori\d.png" />
+    <Resource Include="sayori\e-n.png" />
+    <Resource Include="sayori\e.png" />
+    <Resource Include="sayori\f-n.png" />
+    <Resource Include="sayori\f.png" />
+    <Resource Include="sayori\g-n.png" />
+    <Resource Include="sayori\g.png" />
+    <Resource Include="sayori\h-n.png" />
+    <Resource Include="sayori\h.png" />
+    <Resource Include="sayori\i-n.png" />
+    <Resource Include="sayori\i.png" />
+    <Resource Include="sayori\j-n.png" />
+    <Resource Include="sayori\j.png" />
+    <Resource Include="sayori\k-n.png" />
+    <Resource Include="sayori\k.png" />
+    <Resource Include="sayori\l-n.png" />
+    <Resource Include="sayori\l.png" />
+    <Resource Include="sayori\m-n.png" />
+    <Resource Include="sayori\m.png" />
+    <Resource Include="sayori\n-n.png" />
+    <Resource Include="sayori\n.png" />
+    <Resource Include="sayori\o-n.png" />
+    <Resource Include="sayori\o.png" />
+    <Resource Include="sayori\p-n.png" />
+    <Resource Include="sayori\p.png" />
+    <Resource Include="sayori\q-n.png" />
+    <Resource Include="sayori\q.png" />
+    <Resource Include="sayori\r-n.png" />
+    <Resource Include="sayori\r.png" />
+    <Resource Include="sayori\s-n.png" />
+    <Resource Include="sayori\s.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.2.0.0\build\dotnet\Fody.targets" Condition="Exists('..\packages\Fody.2.0.0\build\dotnet\Fody.targets')" />

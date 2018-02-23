@@ -305,6 +305,8 @@ namespace MonikAI
                 MonikaiSettings.Default.LastStarted = DateTime.Now;
                 MonikaiSettings.Default.Save();
 
+                System.Threading.CancellationToken tt = new System.Threading.CancellationToken(true);
+
                 // Blinking and Behaviour logic
                 var eyesOpen = "a";
                 var eyesClosed = "j";
