@@ -198,7 +198,9 @@ namespace MonikAI
                 this.updaterInitTask?.Wait();
                 await this.updater.PerformUpdate(this);
 
-                //MessageBox.Show("This is a testing build, please do me the favor and don't distribute it right now.");
+#if DEBUG
+                MessageBox.Show("This is a testing build, please do me the favor and don't distribute it right now.");
+#endif
 
                 // Startup logic
                 if (MonikaiSettings.Default.FirstLaunch)
@@ -261,7 +263,7 @@ namespace MonikAI
                 //{
                 //    new[]
                 //    {
-                //        new Expression("â™« ... and in your reality ... â™«", "r")
+                //        new Expression("Ã¢â„¢Â« ... and in your reality ... Ã¢â„¢Â«", "r")
                 //    },
                 //    new[]
                 //    {
@@ -901,6 +903,4 @@ namespace MonikAI
             public readonly int top;
             public readonly int right;
             public readonly int bottom;
-        }
-    }
-}
+   
