@@ -902,3 +902,5 @@ namespace MonikAI
             public readonly int right;
             public readonly int bottom;
         }
+    }
+}
