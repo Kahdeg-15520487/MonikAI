@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -76,6 +77,26 @@ namespace MonikAI
                 index++;
             }
 
+            //populate comboBoxCharacter
+            this.comboBoxCharacter.Items.Clear();
+            var monikaCharacter = new ComboBoxItem
+            {
+                Content = "monika"
+            };
+            this.comboBoxCharacter.Items.Add(monikaCharacter);
+
+            foreach (var characterFolder in Directory.EnumerateDirectories(MonikaiSettings.Default.AdditionalSpriteFolder))
+            {
+                var characterFolderName = new DirectoryInfo(characterFolder).Name;
+                this.comboBoxCharacter.Items.Add(new ComboBoxItem
+                {
+                    Content = characterFolderName
+                });
+            }
+
+            //set default
+            this.comboBoxCharacter.SelectedItem = monikaCharacter;
+            //find last selected character from MonikaiSetting
             for (int i = 0; i < this.comboBoxCharacter.Items.Count; i++)
             {
                 if (((ComboBoxItem)this.comboBoxCharacter.Items[i]).Content.ToString() == MonikaiSettings.Default.Character)

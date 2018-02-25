@@ -49,11 +49,15 @@
     </Setting>
     <Setting Name="FirstTimeWithUpdater" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
+    </Setting>
     <Setting Name="Character" Type="System.String" Scope="User">
       <Value Profile="(Default)">monika</Value>
     </Setting>
     <Setting Name="IdleWait" Type="System.String" Scope="User">
       <Value Profile="(Default)">Regular</Value>
+    </Setting>
+    <Setting Name="AdditionalSpriteFolder" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\MINH-LAPTOP\Documents\Visual Studio 2017\Workspace\c#\monikafork - Copy\MonikAI\bin\Debug\addon</Value>
     </Setting>
   </Settings>
 </SettingsFile>

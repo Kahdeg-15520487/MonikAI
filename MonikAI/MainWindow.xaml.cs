@@ -81,6 +81,7 @@ namespace MonikAI
         private readonly Task updaterInitTask;
 
         private string character;
+        private string characterFolderPath;
 
         public MainWindow()
         {
@@ -115,11 +116,21 @@ namespace MonikAI
 
             // Init picture box content
             //var tt = File.ReadAllText("pack://application:,,,/MonikAI;component/" + character + "/define_pos.json");
-            StreamResourceInfo sri = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/MonikAI;component/" + character + "/define_pos.json"));
+            Stream sri;
+            if (character == "monika")
+            {
+                characterFolderPath = "pack://application:,,,/MonikAI;component/monika";
+                sri = System.Windows.Application.GetResourceStream(new Uri(Path.Combine(characterFolderPath, "define_pos.json"))).Stream;
+            }
+            else
+            {
+                characterFolderPath = Path.Combine(MonikaiSettings.Default.AdditionalSpriteFolder, character);
+                sri = new FileStream(Path.Combine(characterFolderPath, "define_pos.json"), FileMode.Open);
+            }
 
             if (sri != null)
             {
-                using (var sr = new StreamReader(sri.Stream))
+                using (var sr = new StreamReader(sri))
                 {
                     var tt = sr.ReadToEnd();
                     var posinfo = Newtonsoft.Json.JsonConvert.DeserializeObject<PictureBoxPositionMargin>(tt);
@@ -139,12 +150,12 @@ namespace MonikAI
             // Init background images
             this.backgroundDay = new BitmapImage();
             this.backgroundDay.BeginInit();
-            this.backgroundDay.UriSource = new Uri("pack://application:,,,/MonikAI;component/" + character + "/1.png");
+            this.backgroundDay.UriSource = new Uri(Path.Combine(characterFolderPath, "1.png"));
             this.backgroundDay.EndInit();
 
             this.backgroundNight = new BitmapImage();
             this.backgroundNight.BeginInit();
-            this.backgroundNight.UriSource = new Uri("pack://application:,,,/MonikAI;component/" + character + "/1-n.png");
+            this.backgroundNight.UriSource = new Uri(Path.Combine(characterFolderPath, "1-n.png"));
             this.backgroundNight.EndInit();
 
             // Start animation
@@ -159,11 +170,11 @@ namespace MonikAI
                 fadeImage.BeginInit();
                 if (MainWindow.IsNight)
                 {
-                    fadeImage.UriSource = new Uri("pack://application:,,,/MonikAI;component/" + character + "/1a-n.png");
+                    fadeImage.UriSource = new Uri(Path.Combine(characterFolderPath, "1a-n.png"));
                 }
                 else
                 {
-                    fadeImage.UriSource = new Uri("pack://application:,,,/MonikAI;component/" + character + "/1a.png");
+                    fadeImage.UriSource = new Uri(Path.Combine(characterFolderPath, "1a.png"));
                 }
                 fadeImage.EndInit();
                 this.backgroundPicture.Source = fadeImage;
@@ -533,7 +544,7 @@ namespace MonikAI
 
                 var faceImg = new BitmapImage();
                 faceImg.BeginInit();
-                faceImg.UriSource = new Uri("pack://application:,,,/MonikAI;component/" + character + "/" + face);
+                faceImg.UriSource = new Uri(Path.Combine(characterFolderPath, face));
                 faceImg.EndInit();
 
                 this.facePicture.Source = faceImg;
@@ -906,4 +917,3 @@ namespace MonikAI
         }
     }
 }
-   

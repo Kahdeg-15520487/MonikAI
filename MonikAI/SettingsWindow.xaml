@@ -30,12 +30,7 @@
         <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Margin="10,85,0,0"><Run Text="Make me bigger/smaller, if you want:"/></TextBlock>
         <Slider x:Name="sliderScale" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="234,85,0,0" Width="224" Maximum="2.75" Value="1" Minimum="0.25" SmallChange="0.05" LargeChange="0.25" ValueChanged="sliderScale_ValueChanged"/>
         <Button x:Name="buttonWorkaround" Content="Help, I'm not seeing Monika!" HorizontalAlignment="Left" VerticalAlignment="Top" Width="214" Margin="10,283,0,0" Click="Button_Click_4"/>
-		<ComboBox x:Name="comboBoxCharacter" HorizontalAlignment="Left" Margin="338,145,0,0" VerticalAlignment="Top" Width="120">
-			<ComboBoxItem Content="monika"/>
-			<ComboBoxItem Content="natsuki"/>
-			<ComboBoxItem Content="yuri"/>
-			<ComboBoxItem Content="sayori"/>
-		</ComboBox>
+		<ComboBox x:Name="comboBoxCharacter" HorizontalAlignment="Left" Margin="338,145,0,0" VerticalAlignment="Top" Width="120"/>
 		<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Margin="10,115,0,0"><Run Text="Wait time between idle dialogue?"/></TextBlock>
         <ComboBox x:Name="comboBoxIdle" Margin="234,113,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="224" SelectionChanged="comboBoxIdle_SelectionChanged">
             <System:String>Very Long</System:String>
