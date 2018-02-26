@@ -162,7 +162,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="app.manifest" />
-    <Resource Include="monika\define_pos.json" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -217,6 +216,7 @@
     <Resource Include="monika\r.png" />
     <Resource Include="monika\s-n.png" />
     <Resource Include="monika\s.png" />
+    <Resource Include="monika\define_pos.json" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="gui\logo.png" />

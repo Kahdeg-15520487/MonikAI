@@ -171,15 +171,30 @@ namespace MonikAI
                 using (var sr = new StreamReader(sri))
                 {
                     var tt = sr.ReadToEnd();
-                    var posinfo = Newtonsoft.Json.JsonConvert.DeserializeObject<PictureBoxPositionMargin>(tt);
+                    var addoninfo = Newtonsoft.Json.JsonConvert.DeserializeObject<AddonConfig>(tt);
                     var scaleRatio = (this.MonikaScreen.Bounds.Height / 1080.0) * MonikaiSettings.Default.ScaleModifier;
 
-                    facePicture.Height = posinfo.FaceHeight;
-                    facePicture.Width = posinfo.FaceWidth;
+                    facePicture.Height = addoninfo.FaceHeight;
+                    facePicture.Width = addoninfo.FaceWidth;
                     Thickness faceMargin = facePicture.Margin;
-                    faceMargin.Left = posinfo.FaceOffsetLeft;
-                    faceMargin.Top = posinfo.FaceOffsetTop;
+                    faceMargin.Left = addoninfo.FaceOffsetLeft;
+                    faceMargin.Top = addoninfo.FaceOffsetTop;
                     facePicture.Margin = faceMargin;
+
+                    if (addoninfo.IsUseCustomTextBox)
+                    {
+                        //load custom textbox sprite
+                        BitmapImage customTextBox = new BitmapImage();
+                        customTextBox.BeginInit();
+                        customTextBox.UriSource = new Uri(Path.Combine(characterFolderPath, "textbox.png"));
+                        customTextBox.EndInit();
+                        this.textPicture.Source = customTextBox;
+
+                        var textboxMargin = this.textBox.Margin;
+                        textboxMargin.Left += addoninfo.CustomTextBoxOffsetLeft;
+                        textboxMargin.Bottom += addoninfo.CustomTextBoxOffsetBottom;
+                        this.textBox.Margin = textboxMargin;
+                    }
                 }
             }
 
@@ -993,13 +1008,23 @@ namespace MonikAI
         }
     }
 
-    struct PictureBoxPositionMargin
+    struct AddonConfig
     {
+        //background size
         public float BackgroundWidth { get; set; }
         public float BackgroundHeight { get; set; }
+
+        //face size and offset
         public float FaceHeight { get; set; }
         public float FaceWidth { get; set; }
         public float FaceOffsetLeft { get; set; }
         public float FaceOffsetTop { get; set; }
+
+        //custom textbox
+        public bool IsUseCustomTextBox { get; set; }
+
+        //custom textbox text offset
+        public float CustomTextBoxOffsetLeft { get; set; }
+        public float CustomTextBoxOffsetBottom { get; set; }
     }
 }
