@@ -176,6 +176,8 @@ namespace MonikAI
                         .DeviceName;
             }
 
+            MonikaiSettings.Default.Character = ((ComboBoxItem)this.comboBoxCharacter.SelectedItem).Content.ToString();
+
             MonikaiSettings.Default.Save();
         }
 

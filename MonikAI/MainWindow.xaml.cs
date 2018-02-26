@@ -144,7 +144,26 @@ namespace MonikAI
             else
             {
                 characterFolderPath = Path.Combine(MonikaiSettings.Default.AddonFolder, character);
-                sri = new FileStream(Path.Combine(characterFolderPath, "define_pos.json"), FileMode.Open);
+                //if that last used character's folder doesnt exist then default to monika
+                if (!Directory.Exists(characterFolderPath))
+                {
+                    this.Say(new[]
+                    {
+                        new Expression("Look like "+character+" has gone some where"),
+                        new Expression("I can't seem to found her folder in addon"),
+                        new Expression("So for the time being, i will replace "+character+" for a bit! Tee Hee")
+                    });
+                    character = "monika";
+                    characterFolderPath = "pack://application:,,,/MonikAI;component/monika";
+                    MonikaiSettings.Default.Character = character;
+                    MonikaiSettings.Default.Save();
+
+                    sri = System.Windows.Application.GetResourceStream(new Uri(Path.Combine(characterFolderPath, "define_pos.json"))).Stream;
+                }
+                else
+                {
+                    sri = new FileStream(Path.Combine(characterFolderPath, "define_pos.json"), FileMode.Open);
+                }
             }
 
             if (sri != null)
