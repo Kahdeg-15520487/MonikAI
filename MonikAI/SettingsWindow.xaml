@@ -40,6 +40,9 @@
             <System:String>Off</System:String>
         </ComboBox>
         <RadioButton x:Name="radioManual" Content="Manual" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="346,63,0,0" Unchecked="radio_checked_changed" Checked="radio_checked_changed" Width="60"/>
-
-    </Grid>
+		<TextBlock HorizontalAlignment="Left" Margin="234,147,0,0" TextWrapping="Wrap" Text="Choose your Doki" VerticalAlignment="Top"/>
+		<ComboBox x:Name="comboBoxCharacter" HorizontalAlignment="Left" Margin="338,145,0,0" VerticalAlignment="Top" Width="120"/>
+		<Button x:Name="buttonChooseAddonFolder" Content="..." HorizontalAlignment="Left" Margin="383,172,0,0" VerticalAlignment="Top" Width="75" Click="buttonChooseAddonFolder_Click"/>
+		<TextBlock HorizontalAlignment="Left" Margin="234,172,0,0" TextWrapping="Wrap" Text="Choose your addon folder" VerticalAlignment="Top"/>
+	</Grid>
 </Window>

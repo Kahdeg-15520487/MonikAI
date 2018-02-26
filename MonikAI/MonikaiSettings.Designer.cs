@@ -12,7 +12,7 @@ namespace MonikAI {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.3.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.5.0.0")]
     internal sealed partial class MonikaiSettings : global::System.Configuration.ApplicationSettingsBase {
         
         private static MonikaiSettings defaultInstance = ((MonikaiSettings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new MonikaiSettings())));
@@ -260,6 +260,31 @@ namespace MonikAI {
             }
             set {
                 this["AutoStartTask"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("monika")]
+        public string Character {
+            get {
+                return ((string)(this["Character"]));
+            }
+            set {
+                this["Character"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\MINH-LAPTOP\\Documents\\Visual Studio 2017\\Workspace\\c#\\monikafork - Copy\\" +
+            "MonikAI\\bin\\Debug\\addon")]
+        public string AddonFolder {
+            get {
+                return ((string)(this["AddonFolder"]));
+            }
+            set {
+                this["AddonFolder"] = value;
             }
         }
     }
