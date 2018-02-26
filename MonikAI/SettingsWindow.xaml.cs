@@ -286,12 +286,7 @@ namespace MonikAI
             var timer = DateTime.Now;
             var state = SettingsWindow.GetKeyboardState().ToList();
             var invalid = true;
-<<<<<<< HEAD
-
-            while ((DateTime.Now - timer).TotalSeconds < 0.8)
-=======
             while ((DateTime.Now - timer).TotalSeconds < 0.75)
->>>>>>> master
             {
                 var newState = SettingsWindow.GetKeyboardState().ToList();
 
