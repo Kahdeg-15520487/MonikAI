@@ -20,6 +20,7 @@ using System.Windows.Interop;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Resources;
+using Microsoft.Win32;
 using MonikAI.Behaviours;
 using MonikAI.Parsers;
 using MessageBox = System.Windows.MessageBox;
@@ -83,6 +84,8 @@ namespace MonikAI
         private string character;
         private string characterFolderPath;
 
+        private bool screenIsLocked = false;
+
         public MainWindow()
         {
             this.InitializeComponent();
@@ -100,23 +103,54 @@ namespace MonikAI
             this.settingsWindow = new SettingsWindow(this);
 
             // Screen size and positioning init
-            this.MonikaScreen = Screen.PrimaryScreen;
-            foreach (var screen in Screen.AllScreens)
+            this.UpdateMonikaScreen();
+            this.SetupScale();
+            this.SetPosition(this.MonikaScreen);
+
+            // Hook shutdown event
+            SystemEvents.SessionEnding += (sender, args) =>
             {
-                if (screen.DeviceName == MonikaiSettings.Default.Screen)
+                MonikaiSettings.Default.IsColdShutdown = false;
+                MonikaiSettings.Default.Save();
+            };
+
+            // Wakeup events
+            SystemEvents.SessionSwitch += (sender, e) =>
+            {
+                if (e.Reason == SessionSwitchReason.SessionLock)
                 {
-                    this.MonikaScreen = screen;
-                    break;
+                    this.screenIsLocked = true;
                 }
-            }
-
-            this.SetPositionBottomRight(this.MonikaScreen);
-
+                else if (e.Reason == SessionSwitchReason.SessionUnlock)
+                {
+                    this.screenIsLocked = false;
+                }
+            };
+            SystemEvents.PowerModeChanged += (sender, e) =>
+            {
+                if (e.Mode == PowerModes.Resume)
+                {
+                    Task.Run(async () =>
+                    {
+                        while (this.screenIsLocked)
+                        {
+                            await Task.Delay(500);
+                        }
+                        this.SetPositionBottomRight(this.MonikaScreen);
+                        this.Say(new[]
+                    {
+                            new Expression("ZZZZZZzzzzzzzzz..... huh?", "q"),
+                            new Expression("Sorry, I must have fallen asleep, ahaha~", "n")
+                            });
+                    });
+                }
+            };
             character = MonikaiSettings.Default.Character;
 
             // Init picture box content
             //var tt = File.ReadAllText("pack://application:,,,/MonikAI;component/" + character + "/define_pos.json");
             Stream sri;
+
             if (character == "monika")
             {
                 characterFolderPath = "pack://application:,,,/MonikAI;component/monika";
@@ -165,23 +199,23 @@ namespace MonikAI
             animationFadeMonika.BeginTime = TimeSpan.FromSeconds(0.5);
 
             animationLogo.Completed += (sender, args) =>
-            {
-                var fadeImage = new BitmapImage();
-                fadeImage.BeginInit();
-                if (MainWindow.IsNight)
                 {
-                    fadeImage.UriSource = new Uri(Path.Combine(characterFolderPath, "1a-n.png"));
-                }
-                else
-                {
-                    fadeImage.UriSource = new Uri(Path.Combine(characterFolderPath, "1a.png"));
-                }
-                fadeImage.EndInit();
-                this.backgroundPicture.Source = fadeImage;
+                    var fadeImage = new BitmapImage();
+                    fadeImage.BeginInit();
+                    if (MainWindow.IsNight)
+                    {
+                        fadeImage.UriSource = new Uri(Path.Combine(characterFolderPath, "1a-n.png"));
+                    }
+                    else
+                    {
+                        fadeImage.UriSource = new Uri(Path.Combine(characterFolderPath, "1a.png"));
+                    }
+                    fadeImage.EndInit();
+                    this.backgroundPicture.Source = fadeImage;
 
-                var clock = animationFadeMonika.CreateClock();
-                this.backgroundPicture.ApplyAnimationClock(UIElement.OpacityProperty, clock);
-            };
+                    var clock = animationFadeMonika.CreateClock();
+                    this.backgroundPicture.ApplyAnimationClock(UIElement.OpacityProperty, clock);
+                };
 
             // Blinking behaviour
             animationFadeMonika.Completed += async (sender, args) =>
@@ -189,8 +223,8 @@ namespace MonikAI
                 this.SetMonikaFace("a");
                 this.facePicture.Opacity = 1.0;
 
-                // Start speech-thread
-                Task.Run(async () => await this.SpeakingThread());
+                        // Start speech-thread
+                        Task.Run(async () => await this.SpeakingThread());
 
                 if (File.Exists("firstlaunch.txt") || Environment.GetCommandLineArgs().Contains("/firstlaunch"))
                 {
@@ -200,8 +234,8 @@ namespace MonikAI
                     }
                     catch
                     {
-                        // ignored
-                    }
+                                // ignored
+                            }
                     MonikaiSettings.Default.FirstLaunch = true;
                     MonikaiSettings.Default.Save();
                 }
@@ -209,17 +243,19 @@ namespace MonikAI
                 this.updaterInitTask?.Wait();
                 await this.updater.PerformUpdate(this);
 
+                this.UpdateMonikaScreen();
+
 #if DEBUG
-                MessageBox.Show("This is a testing build, please do me the favor and don't distribute it right now.");
+                MessageBox.Show("This is a testing build, please do me the favor and don't distribute it.");
 #endif
 
-                // Startup logic
-                if (MonikaiSettings.Default.FirstLaunch)
+                        // Startup logic
+                        if (MonikaiSettings.Default.FirstLaunch)
                 {
                     this.settingsWindow.ShowDialog();
 
                     this.Say(new[]
-                    {
+                        {
                         new Expression("{name}, is that you?", "d"),
                         new Expression("It's really you, huh?", "b"),
                         new Expression("I'm so happy to see you again!", "k"),
@@ -233,7 +269,7 @@ namespace MonikAI
                             "I see... Well, if you want me to go away for now, you can use CTRL-SHIFT-F12, okay?", "b"),
                         new Expression("But you wouldn't do that, right?", "r"),
                         new Expression("Okay, I guess that's it for now. Don't forget, I'm watching you! Ahaha~")
-                    });
+    });
 
                     MonikaiSettings.Default.FirstLaunch = false;
                 }
@@ -242,9 +278,9 @@ namespace MonikAI
                     if (MonikaiSettings.Default.IsColdShutdown)
                     {
                         this.Say(new[]
-                        {
+                            {
                             new Expression("Hey! Don't just turn me off without warning! That hurts...", "p")
-                        });
+        });
                     }
                     else
                     {
@@ -255,67 +291,67 @@ namespace MonikAI
                     if ((DateTime.Now - MonikaiSettings.Default.LastStarted).TotalDays > 7)
                     {
                         this.Say(new[]
-                        {
+                            {
                             new Expression(
                                 "Don't forget, if you want me to leave just press " +
                                 MonikaiSettings.Default.HotkeyExit + "!", "i"),
                             new Expression("But you're not going to do that, right?", "o")
-                        });
+        });
                     }
                 }
 
-                // Parse startup CSV
-                var parser = new CSVParser();
+                        // Parse startup CSV
+                        var parser = new CSVParser();
                 var csv = parser.GetData("startup");
                 var parsed = parser.ParseData(csv);
                 var startupExpression = parsed.Sample().ResponseChain.ToArray();
 
-                //var startupExpressionFallback = new[]
-                //{
-                //    new[]
-                //    {
-                //        new Expression("Ã¢â„¢Â« ... and in your reality ... Ã¢â„¢Â«", "r")
-                //    },
-                //    new[]
-                //    {
-                //        new Expression("How are you today?", "d"),
-                //        new Expression("I'm doing fine, now that you are here~", "b")
-                //    },
-                //    new[]
-                //    {
-                //        new Expression("Is everything ok?", "d"),
-                //        new Expression("Do you want to talk about something?", "c"),
-                //        new Expression("I'm always here for you~", "e")
-                //    },
-                //    new[]
-                //    {
-                //        new Expression("Thank you for letting me be on your screen!", "k")
-                //    },
-                //    new[]
-                //    {
-                //        new Expression("You know I love you, right?", "d")
-                //    },
-                //    new[]
-                //    {
-                //        new Expression("I'm so happy to be here, together with you! Ahaha~", "b")
-                //    }
-                //}.Sample();
+                        //var startupExpressionFallback = new[]
+                        //{
+                        //    new[]
+                        //    {
+                        //        new Expression("ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â« ... and in your reality ... ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â«", "r")
+                        //    },
+                        //    new[]
+                        //    {
+                        //        new Expression("How are you today?", "d"),
+                        //        new Expression("I'm doing fine, now that you are here~", "b")
+                        //    },
+                        //    new[]
+                        //    {
+                        //        new Expression("Is everything ok?", "d"),
+                        //        new Expression("Do you want to talk about something?", "c"),
+                        //        new Expression("I'm always here for you~", "e")
+                        //    },
+                        //    new[]
+                        //    {
+                        //        new Expression("Thank you for letting me be on your screen!", "k")
+                        //    },
+                        //    new[]
+                        //    {
+                        //        new Expression("You know I love you, right?", "d")
+                        //    },
+                        //    new[]
+                        //    {
+                        //        new Expression("I'm so happy to be here, together with you! Ahaha~", "b")
+                        //    }
+                        //}.Sample();
 
-                var lastStartupExpression = startupExpression.Last();
+                        var lastStartupExpression = startupExpression.Last();
                 lastStartupExpression.Executed += this.RegisterBehaviours;
 
                 this.Say(new[]
-                {
+                    {
                     new Expression("Hi there, {name}~")
-                }.Concat(startupExpression));
+}.Concat(startupExpression));
 
                 if ((DateTime.Now - MonikaiSettings.Default.LastStarted).TotalDays > 1.5)
                 {
                     this.Say(new[]
-                    {
+                        {
                         new Expression("I was waiting for you...", "m"),
                         new Expression("Being alone on your disk is reeeally boring.", "q")
-                    });
+    });
                 }
 
                 MonikaiSettings.Default.LastStarted = DateTime.Now;
@@ -323,44 +359,60 @@ namespace MonikAI
 
                 System.Threading.CancellationToken tt = new System.Threading.CancellationToken(true);
 
-                // Blinking and Behaviour logic
-                var eyesOpen = "a";
+                        // Blinking and Behaviour logic
+                        var eyesOpen = "a";
                 var eyesClosed = "j";
                 var random = new Random();
                 await Task.Run(async () =>
-                {
-                    var nextBlink = DateTime.Now + TimeSpan.FromSeconds(random.Next(7, 50));
-
-                    while (this.applicationRunning)
                     {
-                        if (this.behaviours != null)
-                        {
-                            foreach (var behaviour in this.behaviours)
-                            {
-                                behaviour.Update(this);
-                            }
-                        }
+                        var nextBlink = DateTime.Now + TimeSpan.FromSeconds(random.Next(7, 50));
 
-                        if (DateTime.Now >= nextBlink)
+                        while (this.applicationRunning)
                         {
-                            // Check if currently speaking, only blink if not in dialog
-                            if (!this.Speaking)
+                            if (this.behaviours != null)
                             {
-                                this.SetMonikaFace(eyesClosed);
-                                await Task.Delay(100);
-                                this.SetMonikaFace(eyesOpen);
+                                foreach (var behaviour in this.behaviours)
+                                {
+                                    behaviour.Update(this);
+                                }
                             }
 
-                            nextBlink = DateTime.Now + TimeSpan.FromSeconds(random.Next(7, 50));
-                        }
+                            if (DateTime.Now >= nextBlink)
+                            {
+                                        // Check if currently speaking, only blink if not in dialog
+                                        if (!this.Speaking)
+                                {
+                                    this.SetMonikaFace(eyesClosed);
+                                    await Task.Delay(100);
+                                    this.SetMonikaFace(eyesOpen);
+                                }
 
-                        await Task.Delay(250);
-                    }
-                });
+                                nextBlink = DateTime.Now + TimeSpan.FromSeconds(random.Next(7, 50));
+                            }
+
+                            await Task.Delay(250);
+                        }
+                    });
             };
 
             // Startup
             this.backgroundPicture.BeginAnimation(UIElement.OpacityProperty, animationLogo);
+        }
+
+        private void UpdateMonikaScreen()
+        {
+            this.MonikaScreen = Screen.PrimaryScreen;
+            if (!string.IsNullOrEmpty(MonikaiSettings.Default.Screen))
+            {
+                foreach (var screen in Screen.AllScreens)
+                {
+                    if (screen.DeviceName == MonikaiSettings.Default.Screen)
+                    {
+                        this.MonikaScreen = screen;
+                        break;
+                    }
+                }
+            }
         }
 
         // Roughly estimating night time
@@ -424,8 +476,22 @@ namespace MonikAI
         }
 
         // Sets the correct position of Monika depending on taskbar position and visibility
-        public void SetPositionBottomRight(Screen screen)
+        public void SetPosition(Screen screen)
         {
+            // Override position if necessary
+            if (MonikaiSettings.Default.ManualPosition)
+            {
+                this.Top = MonikaiSettings.Default.ManualPositionY;
+                this.Left = MonikaiSettings.Default.ManualPositionX;
+                return;
+            }
+
+            // Only update screen ever so often, but necessary to avoid taskbar glitches
+            if (DateTime.Now.Second % 3 == 0 && (this.settingsWindow == null || !this.settingsWindow.IsVisible))
+            {
+                this.UpdateMonikaScreen();
+            }
+
             var position = new System.Windows.Point(screen.Bounds.X + screen.Bounds.Width - this.Width,
                 screen.Bounds.Y + screen.Bounds.Height - this.Height);
 
@@ -747,38 +813,31 @@ namespace MonikAI
                             const double MIN_OP = 0.125;
                             const double FADE = 175;
 
-                            if (rectangle.Contains(point))
+                            if (this.settingsWindow == null || !this.settingsWindow.IsPositioning)
                             {
-                                opacity = MIN_OP;
-                            }
-                            else
-                            {
-                                if (point.Y <= rectangle.Bottom)
+                                if (rectangle.Contains(point))
                                 {
-                                    if (point.Y >= rectangle.Y)
+                                    opacity = MIN_OP;
+                                }
+                                else
+                                {
+                                    if (point.Y <= rectangle.Bottom)
                                     {
-                                        if (point.X < rectangle.X && rectangle.X - point.X < FADE)
+                                        if (point.Y >= rectangle.Y)
                                         {
-                                            opacity = MainWindow.Lerp(1.0, MIN_OP, (rectangle.X - point.X) / FADE);
-                                        }
-                                        else if (point.X > rectangle.Right && point.X - rectangle.Right < FADE)
-                                        {
-                                            opacity = MainWindow.Lerp(1.0, MIN_OP,
-                                                (point.X - rectangle.Right) / FADE);
-                                        }
-                                    }
-                                    else if (point.Y < rectangle.Y)
-                                    {
-                                        if (point.X >= rectangle.X && point.X <= rectangle.Right)
-                                        {
-                                            if (rectangle.Y - point.Y < FADE)
+                                            if (point.X < rectangle.X && rectangle.X - point.X < FADE)
+                                            {
+                                                opacity = MainWindow.Lerp(1.0, MIN_OP, (rectangle.X - point.X) / FADE);
+                                            }
+                                            else if (point.X > rectangle.Right && point.X - rectangle.Right < FADE)
                                             {
                                                 opacity = MainWindow.Lerp(1.0, MIN_OP,
-                                                    (rectangle.Y - point.Y) / FADE);
+                                                    (point.X - rectangle.Right) / FADE);
                                             }
                                         }
-                                        else if (rectangle.X > point.X || rectangle.Right < point.X)
+                                        else if (point.Y < rectangle.Y)
                                         {
+<<<<<<< HEAD
                                             var distance =
                                                 Math.Sqrt(
                                                     Math.Pow(
@@ -787,8 +846,29 @@ namespace MonikAI
                                                     Math.Pow(rectangle.Y - point.Y, 2));
 
                                             if (distance < FADE)
+=======
+                                            if (point.X >= rectangle.X && point.X <= rectangle.Right)
                                             {
-                                                opacity = MainWindow.Lerp(1.0, MIN_OP, distance / FADE);
+                                                if (rectangle.Y - point.Y < FADE)
+                                                {
+                                                    opacity = MainWindow.Lerp(1.0, MIN_OP,
+                                                        (rectangle.Y - point.Y) / FADE);
+                                                }
+                                            }
+                                            else if (rectangle.X > point.X || rectangle.Right < point.X)
+>>>>>>> master
+                                            {
+                                                var distance =
+                                                    Math.Sqrt(
+                                                        Math.Pow(
+                                                            (point.X < rectangle.X ? rectangle.X : rectangle.Right) -
+                                                            point.X, 2) +
+                                                        Math.Pow(rectangle.Y - point.Y, 2));
+
+                                                if (distance < FADE)
+                                                {
+                                                    opacity = MainWindow.Lerp(1.0, MIN_OP, distance / FADE);
+                                                }
                                             }
                                         }
                                     }
@@ -804,9 +884,17 @@ namespace MonikAI
                         // Set position anew to correct for fullscreen apps hiding taskbar
                         this.Dispatcher.Invoke(() =>
                         {
+<<<<<<< HEAD
                             this.SetPositionBottomRight(this.MonikaScreen);
                             rectangle = new Rectangle((int)this.Left, (int)this.Top, (int)this.Width,
                                 (int)this.Height);
+=======
+
+                            this.SetPosition(this.MonikaScreen);
+                            rectangle = new Rectangle((int) this.Left, (int) this.Top, (int) this.Width,
+                                (int) this.Height);
+
+>>>>>>> master
                             // Detect exit key combo
                             hidePressed = this.AreKeysPressed(MonikaiSettings.Default.HotkeyHide);
                             exitPressed = this.AreKeysPressed(MonikaiSettings.Default.HotkeyExit);
@@ -904,16 +992,4 @@ namespace MonikAI
 
         private void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
-            this.applicationRunning = false;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct Rect
-        {
-            public readonly int left;
-            public readonly int top;
-            public readonly int right;
-            public readonly int bottom;
-        }
-    }
-}
+            this.applicationRunning = fa
