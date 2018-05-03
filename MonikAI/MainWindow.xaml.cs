@@ -47,6 +47,8 @@ namespace MonikAI
         };
 
         private readonly Queue<IEnumerable<Expression>> saying = new Queue<IEnumerable<Expression>>();
+        private readonly Updater updater;
+        private readonly Task updaterInitTask;
         private bool applicationRunning = true;
         private Thickness basePictureThickness, baseTextThickness;
 
@@ -66,11 +68,9 @@ namespace MonikAI
             scaleBaseTextBoxHeight,
             scaleBaseTextBoxFontSize;
 
-        private SettingsWindow settingsWindow;
-        private readonly Updater updater;
-        private readonly Task updaterInitTask;
+        private bool screenIsLocked;
 
-        private bool screenIsLocked = false;
+        private SettingsWindow settingsWindow;
 
         public MainWindow()
         {
@@ -123,7 +123,7 @@ namespace MonikAI
                             await Task.Delay(500);
                         }
 
-                        this.Say(new []
+                        this.Say(new[]
                         {
                             new Expression("ZZZZZZzzzzzzzzz..... huh?", "q"),
                             new Expression("Sorry, I must have fallen asleep, ahaha~", "n")
@@ -224,14 +224,69 @@ namespace MonikAI
 
                     MonikaiSettings.Default.FirstLaunch = false;
                 }
+                else if (DateTime.Today.Month == 4 && DateTime.Today.Day == 1 && !Debugger.IsAttached)
+                {
+                    this.Say(new[]
+                    {
+                        new Expression("Hi {name}!", "b"),
+                        new Expression("Remember the update that I just installed?", "d"),
+                        new Expression("Well, let's just say it included something *really* nice~", "k"),
+                        new Expression("Here, let me show you!", "j").AttachEvent((o, eventArgs) =>
+                        {
+                            var os = MonikaiSettings.Default.ScaleModifier;
+                            MonikaiSettings.Default.ScaleModifier *= 2.5;
+                            this.Dispatcher.Invoke(this.SetupScale);
+                            MonikaiSettings.Default.ScaleModifier = os;
+                            Task.Delay(1000).Wait();
+                            var r = new Random();
+                            for (int i = 0; i < 12; i++)
+                            {
+                                this.Dispatcher.Invoke(() =>
+                                {
+                                    this.backgroundPicture.Source =
+                                        r.Next(0, 2) == 0 ? this.backgroundNight : this.backgroundDay;
+
+                                    var faceImg = new BitmapImage();
+                                    faceImg.BeginInit();
+                                    if (r.Next(0, 2) == 0)
+                                    {
+                                        faceImg.UriSource =
+                                            new Uri("pack://application:,,,/MonikAI;component/monika/j.png");
+                                    }
+                                    else
+                                    {
+                                        faceImg.UriSource =
+                                            new Uri("pack://application:,,,/MonikAI;component/monika/j-n.png");
+                                    }
+                                    faceImg.EndInit();
+
+                                    this.facePicture.Source = faceImg;
+                                });
+                                Task.Delay(r.Next(100, 250)).Wait();
+                            }
+                        }),
+                        new Expression("Just a second my love...", "d").AttachEvent((o, eventArgs) =>
+                        {
+                            this.Dispatcher.Invoke(MainWindow.DoTheThing);
+                            Task.Delay(5500).Wait();
+                            this.Dispatcher.Invoke(this.SetupScale);
+                        }),
+                        new Expression("...", "q"),
+                        new Expression("Why does this never work?!", "o"),
+                        new Expression("Oh well, back to normal I guess... Sorry, {name}.", "r") 
+                    });
+                }
                 else
                 {
                     if (MonikaiSettings.Default.IsColdShutdown)
                     {
+                        // Sorry Monika, but if we're debugging you this one gets annoying
+#if !DEBUG
                         this.Say(new[]
                         {
                             new Expression("Hey! Don't just turn me off without warning! That hurts...", "p")
                         });
+#endif
                     }
                     else
                     {
@@ -255,38 +310,16 @@ namespace MonikAI
                 var parser = new CSVParser();
                 var csv = parser.GetData("startup");
                 var parsed = parser.ParseData(csv);
-                var startupExpression = parsed.Sample().ResponseChain.ToArray();
-
-                //var startupExpressionFallback = new[]
-                //{
-                //    new[]
-                //    {
-                //        new Expression("♫ ... and in your reality ... ♫", "r")
-                //    },
-                //    new[]
-                //    {
-                //        new Expression("How are you today?", "d"),
-                //        new Expression("I'm doing fine, now that you are here~", "b")
-                //    },
-                //    new[]
-                //    {
-                //        new Expression("Is everything ok?", "d"),
-                //        new Expression("Do you want to talk about something?", "c"),
-                //        new Expression("I'm always here for you~", "e")
-                //    },
-                //    new[]
-                //    {
-                //        new Expression("Thank you for letting me be on your screen!", "k")
-                //    },
-                //    new[]
-                //    {
-                //        new Expression("You know I love you, right?", "d")
-                //    },
-                //    new[]
-                //    {
-                //        new Expression("I'm so happy to be here, together with you! Ahaha~", "b")
-                //    }
-                //}.Sample();
+                var startupExpression = parsed.Select(x => x.ResponseChain)
+                                              .Concat(DateTime.Today.DayOfWeek == DayOfWeek.Wednesday
+                                                  ? new List<List<Expression>>
+                                                  {
+                                                      new List<Expression>
+                                                      {
+                                                          new Expression("It is Wednesday, my dudes!", "k")
+                                                      }
+                                                  }
+                                                  : new List<List<Expression>>()).ToList().Sample();
 
                 var lastStartupExpression = startupExpression.Last();
                 lastStartupExpression.Executed += this.RegisterBehaviours;
@@ -296,12 +329,24 @@ namespace MonikAI
                     new Expression("Hi there, {name}~")
                 }.Concat(startupExpression));
 
-                if ((DateTime.Now - MonikaiSettings.Default.LastStarted).TotalDays > 1.5)
+                if ((DateTime.Now - MonikaiSettings.Default.LastStarted).TotalDays > 2.5)
                 {
                     this.Say(new[]
                     {
                         new Expression("I was waiting for you...", "m"),
                         new Expression("Being alone on your disk is reeeally boring.", "q")
+                    });
+                }
+
+                // No idea where the date comes from, someone mentioned it in the spreadsheet. Seems legit.
+                if (DateTime.Now.Month == 9 && DateTime.Now.Day == 22)
+                {
+                    // Hey {name}, guess what?	3b	It's my birthday today!	2b	Happy Birthday to me!	k
+                    this.Say(new[]
+                    {
+                        new Expression("Hey {name}, guess what?", "b"), // What?
+                        new Expression("It's my birthday today!", "b"), // Really?!
+                        new Expression("Happy Birthday to me!", "k") // To you too, Monika! 
                     });
                 }
 
@@ -347,6 +392,30 @@ namespace MonikAI
             this.backgroundPicture.BeginAnimation(UIElement.OpacityProperty, animationLogo);
         }
 
+        private static void DoTheThing()
+        {
+            foreach (var s in Screen.AllScreens)
+            {
+                var w = new UnconspicousWindow
+                {
+                    Left = s.Bounds.Left,
+                    Top = s.Bounds.Top,
+                    Width = s.Bounds.Width,
+                    Height = s.Bounds.Height
+                };
+                w.Show();
+            }
+        }
+
+        // Roughly estimating night time
+        public static bool IsNight => MonikaiSettings.Default.DarkMode != "Day" && (MonikaiSettings.Default.DarkMode == "Night" || DateTime.Now.Hour > 20 || DateTime.Now.Hour < 7);
+
+        public string CurrentFace { get; private set; } = "a";
+
+        public bool Speaking { get; private set; }
+
+        public Screen MonikaScreen { get; set; }
+
         private void UpdateMonikaScreen()
         {
             this.MonikaScreen = Screen.PrimaryScreen;
@@ -362,15 +431,6 @@ namespace MonikAI
                 }
             }
         }
-
-        // Roughly estimating night time
-        public static bool IsNight => DateTime.Now.Hour > 20 || DateTime.Now.Hour < 7;
-
-        public string CurrentFace { get; private set; } = "a";
-
-        public bool Speaking { get; private set; }
-
-        public Screen MonikaScreen { get; set; }
 
         public void SetupScale()
         {
@@ -819,8 +879,6 @@ namespace MonikAI
                         // Set position anew to correct for fullscreen apps hiding taskbar
                         this.Dispatcher.Invoke(() =>
                         {
-
-
                             this.SetPosition(this.MonikaScreen);
                             rectangle = new Rectangle((int) this.Left, (int) this.Top, (int) this.Width,
                                 (int) this.Height);
@@ -838,12 +896,12 @@ namespace MonikAI
 
                             if (this.Visibility == Visibility.Visible)
                             {
-                                var expression =
-                                    new Expression(
-                                        "Okay, see you later " + Environment.UserName +
-                                        "! (Press again for me to return)", "b");
-                                expression.Executed += (o, args) => { this.Dispatcher.Invoke(this.Hide); };
-                                this.Say(new[] {expression});
+                                this.Dispatcher.Invoke(this.Hide);
+                                //var expression =
+                                //    new Expression(
+                                //        "Okay, see you later {name}! (Press again for me to return)", "b");
+                                //expression.Executed += (o, args) => { this.Dispatcher.Invoke(this.Hide); };
+                                //this.Say(new[] {expression});
                             }
                             else
                             {
