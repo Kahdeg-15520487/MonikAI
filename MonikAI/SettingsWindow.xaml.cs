@@ -116,13 +116,16 @@ namespace MonikAI
             };
             this.comboBoxCharacter.Items.Add(monikaCharacter);
 
-            foreach (var characterFolder in Directory.EnumerateDirectories(MonikaiSettings.Default.AddonFolder))
+            if (Directory.Exists(MonikaiSettings.Default.AddonFolder))
             {
-                var characterFolderName = new DirectoryInfo(characterFolder).Name;
-                this.comboBoxCharacter.Items.Add(new ComboBoxItem
+                foreach (var characterFolder in Directory.EnumerateDirectories(MonikaiSettings.Default.AddonFolder))
                 {
-                    Content = characterFolderName
-                });
+                    var characterFolderName = new DirectoryInfo(characterFolder).Name;
+                    this.comboBoxCharacter.Items.Add(new ComboBoxItem
+                    {
+                        Content = characterFolderName
+                    });
+                }
             }
 
             //set default
