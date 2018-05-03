@@ -274,5 +274,30 @@ namespace MonikAI {
                 this["DarkMode"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("monika")]
+        public string Character {
+            get {
+                return ((string)(this["Character"]));
+            }
+            set {
+                this["Character"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\MINH-LAPTOP\\Documents\\Visual Studio 2017\\Workspace\\c#\\monikafork - Copy\\" +
+            "MonikAI\\bin\\Debug\\addon")]
+        public string AddonFolder {
+            get {
+                return ((string)(this["AddonFolder"]));
+            }
+            set {
+                this["AddonFolder"] = value;
+            }
+        }
     }
 }

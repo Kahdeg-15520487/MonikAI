@@ -72,6 +72,9 @@ namespace MonikAI
 
         private SettingsWindow settingsWindow;
 
+        private string character;
+        private string characterFolderPath;
+
         public MainWindow()
         {
             this.InitializeComponent();
@@ -87,11 +90,7 @@ namespace MonikAI
             this.updaterInitTask = Task.Run(async () => await this.updater.Init());
 
             this.settingsWindow = new SettingsWindow(this);
-
-            // Screen size and positioning init
             this.UpdateMonikaScreen();
-            this.SetupScale();
-            this.SetPosition(this.MonikaScreen);
 
             // Hook shutdown event
             SystemEvents.SessionEnding += (sender, args) =>
@@ -132,15 +131,88 @@ namespace MonikAI
                 }
             };
 
+            character = MonikaiSettings.Default.Character;
+
+            // Init picture box content
+            //var tt = File.ReadAllText("pack://application:,,,/MonikAI;component/" + character + "/define_pos.json");
+            Stream sri;
+            if (character == "monika")
+            {
+                characterFolderPath = "pack://application:,,,/MonikAI;component/monika";
+                sri = System.Windows.Application.GetResourceStream(new Uri(Path.Combine(characterFolderPath, "define_pos.json"))).Stream;
+            }
+            else
+            {
+                characterFolderPath = Path.Combine(MonikaiSettings.Default.AddonFolder, character);
+                //if that last used character's folder doesnt exist then default to monika
+                if (!Directory.Exists(characterFolderPath))
+                {
+                    this.Say(new[]
+                    {
+                        new Expression("Look like "+character+" has gone some where"),
+                        new Expression("I can't seem to found her folder in addon"),
+                        new Expression("So for the time being, i will replace "+character+" for a bit! Tee Hee")
+                    });
+                    character = "monika";
+                    characterFolderPath = "pack://application:,,,/MonikAI;component/monika";
+                    MonikaiSettings.Default.Character = character;
+                    MonikaiSettings.Default.Save();
+
+                    sri = System.Windows.Application.GetResourceStream(new Uri(Path.Combine(characterFolderPath, "define_pos.json"))).Stream;
+                }
+                else
+                {
+                    sri = new FileStream(Path.Combine(characterFolderPath, "define_pos.json"), FileMode.Open);
+                }
+            }
+
+            if (sri != null)
+            {
+                using (var sr = new StreamReader(sri))
+                {
+                    var tt = sr.ReadToEnd();
+                    var addoninfo = Newtonsoft.Json.JsonConvert.DeserializeObject<AddonConfig>(tt);
+                    var scaleRatio = (this.MonikaScreen.Bounds.Height / 1080.0) * MonikaiSettings.Default.ScaleModifier;
+
+                    facePicture.Height = addoninfo.FaceHeight;
+                    facePicture.Width = addoninfo.FaceWidth;
+                    Thickness faceMargin = facePicture.Margin;
+                    faceMargin.Left = addoninfo.FaceOffsetLeft;
+                    faceMargin.Top = addoninfo.FaceOffsetTop;
+                    facePicture.Margin = faceMargin;
+
+                    if (addoninfo.IsUseCustomTextBox)
+                    {
+                        //load custom textbox sprite
+                        BitmapImage customTextBox = new BitmapImage();
+                        customTextBox.BeginInit();
+                        customTextBox.UriSource = new Uri(Path.Combine(characterFolderPath, "textbox.png"));
+                        customTextBox.EndInit();
+                        this.textPicture.Source = customTextBox;
+
+                        var textboxMargin = this.textBox.Margin;
+                        textboxMargin.Left += addoninfo.CustomTextBoxOffsetLeft;
+                        textboxMargin.Bottom += addoninfo.CustomTextBoxOffsetBottom;
+                        this.textBox.Margin = textboxMargin;
+                    }
+                }
+            }
+
+
+            // Screen size and positioning init
+            this.SetupScale();
+            this.SetPosition(this.MonikaScreen);
+
+
             // Init background images
             this.backgroundDay = new BitmapImage();
             this.backgroundDay.BeginInit();
-            this.backgroundDay.UriSource = new Uri("pack://application:,,,/MonikAI;component/monika/1.png");
+            this.backgroundDay.UriSource = new Uri(Path.Combine(characterFolderPath, "1.png"));
             this.backgroundDay.EndInit();
 
             this.backgroundNight = new BitmapImage();
             this.backgroundNight.BeginInit();
-            this.backgroundNight.UriSource = new Uri("pack://application:,,,/MonikAI;component/monika/1-n.png");
+            this.backgroundNight.UriSource = new Uri(Path.Combine(characterFolderPath, "1-n.png"));
             this.backgroundNight.EndInit();
 
             // Start animation
@@ -155,11 +227,11 @@ namespace MonikAI
                 fadeImage.BeginInit();
                 if (MainWindow.IsNight)
                 {
-                    fadeImage.UriSource = new Uri("pack://application:,,,/MonikAI;component/monika/1a-n.png");
+                    fadeImage.UriSource = new Uri(Path.Combine(characterFolderPath, "1a-n.png"));
                 }
                 else
                 {
-                    fadeImage.UriSource = new Uri("pack://application:,,,/MonikAI;component/monika/1a.png");
+                    fadeImage.UriSource = new Uri(Path.Combine(characterFolderPath, "1a.png"));
                 }
                 fadeImage.EndInit();
                 this.backgroundPicture.Source = fadeImage;
@@ -477,7 +549,7 @@ namespace MonikAI
             this.behaviours = Assembly.GetExecutingAssembly()
                                       .GetTypes()
                                       .Where(x => x.IsClass && typeof(IBehaviour).IsAssignableFrom(x))
-                                      .Select(x => (IBehaviour) Activator.CreateInstance(x)).ToList();
+                                      .Select(x => (IBehaviour)Activator.CreateInstance(x)).ToList();
 
             foreach (var behaviour in this.behaviours)
             {
@@ -619,7 +691,7 @@ namespace MonikAI
 
                 var faceImg = new BitmapImage();
                 faceImg.BeginInit();
-                faceImg.UriSource = new Uri("pack://application:,,,/MonikAI;component/monika/" + face);
+                faceImg.UriSource = new Uri(Path.Combine(characterFolderPath, face));
                 faceImg.EndInit();
 
                 this.facePicture.Source = faceImg;
@@ -803,8 +875,8 @@ namespace MonikAI
                     var rectangle = new Rectangle();
                     await this.Dispatcher.InvokeAsync(() =>
                     {
-                        rectangle = new Rectangle((int) this.Left, (int) this.Top, (int) this.Width,
-                            (int) this.Height);
+                        rectangle = new Rectangle((int)this.Left, (int)this.Top, (int)this.Width,
+                            (int)this.Height);
                     });
 
                     while (this.applicationRunning)
@@ -880,8 +952,8 @@ namespace MonikAI
                         this.Dispatcher.Invoke(() =>
                         {
                             this.SetPosition(this.MonikaScreen);
-                            rectangle = new Rectangle((int) this.Left, (int) this.Top, (int) this.Width,
-                                (int) this.Height);
+                            rectangle = new Rectangle((int)this.Left, (int)this.Top, (int)this.Width,
+                                (int)this.Height);
 
                             // Detect exit key combo
                             hidePressed = this.AreKeysPressed(MonikaiSettings.Default.HotkeyHide);
@@ -920,7 +992,7 @@ namespace MonikAI
                             {
                                 this.Dispatcher.Invoke(() => { Environment.Exit(0); });
                             };
-                            this.Say(new[] {expression});
+                            this.Say(new[] { expression });
                         }
 
                         if (settingsPressed)
@@ -992,5 +1064,25 @@ namespace MonikAI
             public readonly int right;
             public readonly int bottom;
         }
+    }
+
+    struct AddonConfig
+    {
+        //background size
+        public float BackgroundWidth { get; set; }
+        public float BackgroundHeight { get; set; }
+
+        //face size and offset
+        public float FaceHeight { get; set; }
+        public float FaceWidth { get; set; }
+        public float FaceOffsetLeft { get; set; }
+        public float FaceOffsetTop { get; set; }
+
+        //custom textbox
+        public bool IsUseCustomTextBox { get; set; }
+
+        //custom textbox text offset
+        public float CustomTextBoxOffsetLeft { get; set; }
+        public float CustomTextBoxOffsetBottom { get; set; }
     }
 }

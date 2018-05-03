@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -109,6 +110,38 @@ namespace MonikAI
 
             this.comboBoxIdle.SelectedItem = selObj;
 
+            //populate comboBoxCharacter
+            this.comboBoxCharacter.Items.Clear();
+            var monikaCharacter = new ComboBoxItem
+            {
+                Content = "monika"
+            };
+            this.comboBoxCharacter.Items.Add(monikaCharacter);
+
+            if (Directory.Exists(MonikaiSettings.Default.AddonFolder))
+            {
+                foreach (var characterFolder in Directory.EnumerateDirectories(MonikaiSettings.Default.AddonFolder))
+                {
+                    var characterFolderName = new DirectoryInfo(characterFolder).Name;
+                    this.comboBoxCharacter.Items.Add(new ComboBoxItem
+                    {
+                        Content = characterFolderName
+                    });
+                }
+            }
+
+            //set default
+            this.comboBoxCharacter.SelectedItem = monikaCharacter;
+            //find last selected character from MonikaiSetting
+            for (int i = 0; i < this.comboBoxCharacter.Items.Count; i++)
+            {
+                if (((ComboBoxItem)this.comboBoxCharacter.Items[i]).Content.ToString() == MonikaiSettings.Default.Character)
+                {
+                    this.comboBoxCharacter.SelectedIndex = i;
+                    break;
+                }
+            }
+
             // Focus window
             this.Focus();
             this.Activate();
@@ -148,6 +181,8 @@ namespace MonikAI
                     Screen.AllScreens.First(x => this.comboBoxScreen.SelectedItem.ToString().Contains(x.DeviceName))
                         .DeviceName;
             }
+
+            MonikaiSettings.Default.Character = ((ComboBoxItem)this.comboBoxCharacter.SelectedItem).Content.ToString();
 
             MonikaiSettings.Default.Save();
         }
@@ -269,7 +304,7 @@ namespace MonikAI
                     newState.Where(
                         x =>
                             x.Item2 &&
-                            !new[] {"LeftCtrl", "RightCtrl", "LeftAlt", "RightAlt", "LeftShift", "RightShift"}.Contains(
+                            !new[] { "LeftCtrl", "RightCtrl", "LeftAlt", "RightAlt", "LeftShift", "RightShift" }.Contains(
                                 x.Item1)).ToList();
                 invalid = otherKeysPressed.Count != 1;
 
@@ -327,7 +362,7 @@ namespace MonikAI
         {
             return Enum.GetNames(typeof(Key)).Select(x =>
             {
-                var key = (Key) Enum.Parse(typeof(Key), x);
+                var key = (Key)Enum.Parse(typeof(Key), x);
                 return new Tuple<string, bool>(x, key != Key.None && Keyboard.IsKeyDown(key));
             });
         }
@@ -377,7 +412,7 @@ namespace MonikAI
                 return;
             }
 
-            MonikaiSettings.Default.IdleWait = (string) this.comboBoxIdle.SelectedItem;
+            MonikaiSettings.Default.IdleWait = (string)this.comboBoxIdle.SelectedItem;
         }
 
         private void Button_Autostart_Click(object sender, RoutedEventArgs e)
@@ -392,7 +427,7 @@ namespace MonikAI
                     var definition = ts.NewTask();
                     definition.RegistrationInfo.Description = "Automatically starts MonikAI at startup.";
                     // Add delay to compensate for taskbar weirdness, probably not a good idea but hey
-                    definition.Triggers.Add(new LogonTrigger {Delay = TimeSpan.FromSeconds(2)});
+                    definition.Triggers.Add(new LogonTrigger { Delay = TimeSpan.FromSeconds(2) });
                     definition.Actions.Add(new ExecAction(Assembly.GetEntryAssembly().Location));
                     definition.Principal.RunLevel = TaskRunLevel.Highest;
                     ts.RootFolder.RegisterTaskDefinition(SettingsWindow.AUTOSTART_TASK_NAME, definition);
@@ -417,7 +452,27 @@ namespace MonikAI
             // We need to save here, otherwise the user might cancel the dialog without saving and we end up in an invalid state, out of sync with the task scheduler
             MonikaiSettings.Default.Save();
         }
-
+		
+        private void buttonChooseAddonFolder_Click(object sender, RoutedEventArgs e)
+        {
+            using (var dialog = new OpenFileDialog()
+            {
+                ValidateNames = false,
+                CheckFileExists = false,
+                CheckPathExists = true,
+                FileName = "Folder Selection.",
+                InitialDirectory = MonikaiSettings.Default.AddonFolder
+            })
+            {
+                DialogResult result = dialog.ShowDialog();
+                if (result == System.Windows.Forms.DialogResult.OK)
+                {
+                    var tttt = Path.GetDirectoryName(dialog.FileName);
+                    MonikaiSettings.Default.AddonFolder = tttt;
+                }
+            }
+		}
+		
         private void comboBoxNightMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             MonikaiSettings.Default.DarkMode = (string)this.comboBoxNightMode.SelectedItem;
