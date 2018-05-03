@@ -75,6 +75,8 @@ namespace MonikAI
                 this.buttonAutostart.Content = "Disable starting with Windows";
             }
 
+            this.comboBoxNightMode.SelectedItem = MonikaiSettings.Default.DarkMode;
+
             var index = 0;
             this.comboBoxScreen.Items.Clear();
             foreach (var screen in Screen.AllScreens)
@@ -103,7 +105,7 @@ namespace MonikAI
             if (selObj == null)
             {
                 selObj = this.comboBoxIdle.Items[2];
-                MonikaiSettings.Default.IdleWait = "Regular";
+                MonikaiSettings.Default.IdleWait = "Regular (120-300s)";
             }
 
             this.comboBoxIdle.SelectedItem = selObj;
@@ -171,6 +173,7 @@ namespace MonikAI
         {
             MonikaiSettings.Default.AutoUpdate = this.checkBoxAutoUpdate.IsChecked.GetValueOrDefault(true);
             MonikaiSettings.Default.PotatoPC = this.checkBoxPotatoPC.IsChecked.GetValueOrDefault(false);
+            MonikaiSettings.Default.DarkMode = (string)this.comboBoxNightMode.SelectedItem;
             MonikaiSettings.Default.UserName = this.textBoxName.Text;
             if (this.comboBoxScreen.SelectedItem != null && Screen.AllScreens != null)
             {
@@ -449,7 +452,7 @@ namespace MonikAI
             // We need to save here, otherwise the user might cancel the dialog without saving and we end up in an invalid state, out of sync with the task scheduler
             MonikaiSettings.Default.Save();
         }
-
+		
         private void buttonChooseAddonFolder_Click(object sender, RoutedEventArgs e)
         {
             using (var dialog = new OpenFileDialog()
@@ -468,6 +471,12 @@ namespace MonikAI
                     MonikaiSettings.Default.AddonFolder = tttt;
                 }
             }
+		}
+		
+        private void comboBoxNightMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            MonikaiSettings.Default.DarkMode = (string)this.comboBoxNightMode.SelectedItem;
+            this.mainWindow.SetMonikaFace("a");
         }
     }
 }
