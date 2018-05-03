@@ -236,8 +236,6 @@
   <ItemGroup>
     <None Include="FodyWeavers.xml" />
   </ItemGroup>
-<<<<<<< HEAD
-  <ItemGroup />
   <ItemGroup>
     <None Include="addon\natsuki\1-n.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -621,8 +619,6 @@
     <None Include="addon\yuri\s.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="gui\nice_pic.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
