@@ -21,6 +21,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using MonikAI.Behaviours;
+using MonikAI.Behaviours.HttpRestServer;
 using MonikAI.Parsers;
 using MessageBox = System.Windows.MessageBox;
 using Point = System.Drawing.Point;
@@ -42,7 +43,7 @@ namespace MonikAI
                 "{name}", () => { return MonikaiSettings.Default.UserName; }
             },
             {
-                "{date}", () => { return DateTime.Now.Date.ToString(); }
+                "{date}", () => { return DateTime.Now.Date.ToShortDateString(); }
             }
         };
 
@@ -57,6 +58,8 @@ namespace MonikAI
         private bool initializedScales;
 
         private DateTime lastKeyComboTime = DateTime.Now;
+
+        private float dpiScale = 1.0f;
 
         private double scaleBaseWidth,
             scaleBaseHeight,
@@ -90,6 +93,30 @@ namespace MonikAI
             this.updaterInitTask = Task.Run(async () => await this.updater.Init());
 
             this.settingsWindow = new SettingsWindow(this);
+
+            // Init background images
+            this.backgroundDay = new BitmapImage();
+            this.backgroundDay.BeginInit();
+            this.backgroundDay.UriSource = new Uri("pack://application:,,,/MonikAI;component/monika/1.png");
+            this.backgroundDay.EndInit();
+
+            this.backgroundNight = new BitmapImage();
+            this.backgroundNight.BeginInit();
+            this.backgroundNight.UriSource = new Uri("pack://application:,,,/MonikAI;component/monika/1-n.png");
+            this.backgroundNight.EndInit();
+        }
+
+        // Perform all startup initialization
+        private void MainWindow_OnLoaded(object senderUnused, RoutedEventArgs eUnused)
+        {
+            var handle = new WindowInteropHelper(this).Handle;
+            var initialStyle = MainWindow.GetWindowLong(handle, -20);
+            MainWindow.SetWindowLong(handle, -20, initialStyle | 0x20 | 0x80000);
+
+            var wpfDpi = PresentationSource.FromVisual(this)?.CompositionTarget?.TransformToDevice.M11;
+            this.dpiScale = 1f / (float)wpfDpi.GetValueOrDefault(1);
+
+            // Screen size and positioning init
             this.UpdateMonikaScreen();
 
             // Hook shutdown event
@@ -130,91 +157,6 @@ namespace MonikAI
                     });
                 }
             };
-
-            character = MonikaiSettings.Default.Character;
-
-            // Init picture box content
-            //var tt = File.ReadAllText("pack://application:,,,/MonikAI;component/" + character + "/define_pos.json");
-            Stream sri;
-            if (character == "monika")
-            {
-                characterFolderPath = "pack://application:,,,/MonikAI;component/monika";
-                sri = System.Windows.Application.GetResourceStream(new Uri(Path.Combine(characterFolderPath, "define_pos.json"))).Stream;
-            }
-            else
-            {
-                characterFolderPath = Path.Combine(MonikaiSettings.Default.AddonFolder, character);
-                //if that last used character's folder doesnt exist then default to monika
-                if (!Directory.Exists(characterFolderPath))
-                {
-                    this.Say(new[]
-                    {
-                        new Expression("Look like "+character+" has gone some where"),
-                        new Expression("I can't seem to found her folder in addon"),
-                        new Expression("So for the time being, i will replace "+character+" for a bit! Tee Hee")
-                    });
-                    character = "monika";
-                    characterFolderPath = "pack://application:,,,/MonikAI;component/monika";
-                    MonikaiSettings.Default.Character = character;
-                    MonikaiSettings.Default.Save();
-
-                    sri = System.Windows.Application.GetResourceStream(new Uri(Path.Combine(characterFolderPath, "define_pos.json"))).Stream;
-                }
-                else
-                {
-                    sri = new FileStream(Path.Combine(characterFolderPath, "define_pos.json"), FileMode.Open);
-                }
-            }
-
-            if (sri != null)
-            {
-                using (var sr = new StreamReader(sri))
-                {
-                    var tt = sr.ReadToEnd();
-                    var addoninfo = Newtonsoft.Json.JsonConvert.DeserializeObject<AddonConfig>(tt);
-                    var scaleRatio = (this.MonikaScreen.Bounds.Height / 1080.0) * MonikaiSettings.Default.ScaleModifier;
-
-                    facePicture.Height = addoninfo.FaceHeight;
-                    facePicture.Width = addoninfo.FaceWidth;
-                    Thickness faceMargin = facePicture.Margin;
-                    faceMargin.Left = addoninfo.FaceOffsetLeft;
-                    faceMargin.Top = addoninfo.FaceOffsetTop;
-                    facePicture.Margin = faceMargin;
-
-                    if (addoninfo.IsUseCustomTextBox)
-                    {
-                        //load custom textbox sprite
-                        BitmapImage customTextBox = new BitmapImage();
-                        customTextBox.BeginInit();
-                        customTextBox.UriSource = new Uri(Path.Combine(characterFolderPath, "textbox.png"));
-                        customTextBox.EndInit();
-                        this.textPicture.Source = customTextBox;
-
-                        var textboxMargin = this.textBox.Margin;
-                        textboxMargin.Left += addoninfo.CustomTextBoxOffsetLeft;
-                        textboxMargin.Bottom += addoninfo.CustomTextBoxOffsetBottom;
-                        this.textBox.Margin = textboxMargin;
-                    }
-                }
-            }
-
-
-            // Screen size and positioning init
-            this.SetupScale();
-            this.SetPosition(this.MonikaScreen);
-
-
-            // Init background images
-            this.backgroundDay = new BitmapImage();
-            this.backgroundDay.BeginInit();
-            this.backgroundDay.UriSource = new Uri(Path.Combine(characterFolderPath, "1.png"));
-            this.backgroundDay.EndInit();
-
-            this.backgroundNight = new BitmapImage();
-            this.backgroundNight.BeginInit();
-            this.backgroundNight.UriSource = new Uri(Path.Combine(characterFolderPath, "1-n.png"));
-            this.backgroundNight.EndInit();
-
             // Start animation
             var animationLogo = new DoubleAnimation(0.0, 1.0, new Duration(TimeSpan.FromSeconds(1.5)));
             animationLogo.AutoReverse = true;
@@ -275,6 +217,7 @@ namespace MonikAI
                 // Startup logic
                 if (MonikaiSettings.Default.FirstLaunch)
                 {
+                    MessageBox.Show("Two things to note before I'll let you start enjoying MonikAI:\r\n\r\nFirst, if you don't see Monika on your screen right now, select the \"Manual\" position mode in the settings window that will open after this window has closed (use CTRL-SHIFT-F10 to bring it up afterwards).\r\n\r\nSecond, if you want Monika to react to your web browsing, you need to install the correct extension from the website, \"monik.ai\".\r\n\r\nThat's it from me, I'll let Monika talk from now on :)\r\n\r\n- PiMaker and all the nice people helping develop this", "Welcome!");
                     this.settingsWindow.ShowDialog();
 
                     this.Say(new[]
@@ -345,7 +288,7 @@ namespace MonikAI
                         }),
                         new Expression("...", "q"),
                         new Expression("Why does this never work?!", "o"),
-                        new Expression("Oh well, back to normal I guess... Sorry, {name}.", "r") 
+                        new Expression("Oh well, back to normal I guess... Sorry, {name}.", "r")
                     });
                 }
                 else
@@ -425,6 +368,9 @@ namespace MonikAI
                 MonikaiSettings.Default.LastStarted = DateTime.Now;
                 MonikaiSettings.Default.Save();
 
+                // Start the rest server
+                UrlServer.StartServer();
+
                 // Blinking and Behaviour logic
                 var eyesOpen = "a";
                 var eyesClosed = "j";
@@ -462,6 +408,158 @@ namespace MonikAI
 
             // Startup
             this.backgroundPicture.BeginAnimation(UIElement.OpacityProperty, animationLogo);
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    var prev = new Point();
+
+                    var rectangle = new Rectangle();
+                    await this.Dispatcher.InvokeAsync(() =>
+                    {
+                        rectangle = new Rectangle((int)this.Left, (int)this.Top, (int)this.Width,
+                            (int)this.Height);
+                    });
+
+                    while (this.applicationRunning)
+                    {
+                        var point = new Point();
+                        MainWindow.GetCursorPos(ref point);
+                        point.X = (int)(point.X * this.dpiScale);
+                        point.Y = (int)(point.Y * this.dpiScale);
+
+                        if (!point.Equals(prev))
+                        {
+                            prev = point;
+
+                            var opacity = 1.0;
+                            const double MIN_OP = 0.125;
+                            const double FADE = 175;
+
+                            if (this.settingsWindow == null || !this.settingsWindow.IsPositioning)
+                            {
+                                if (rectangle.Contains(point))
+                                {
+                                    opacity = MIN_OP;
+                                }
+                                else
+                                {
+                                    if (point.Y <= rectangle.Bottom)
+                                    {
+                                        if (point.Y >= rectangle.Y)
+                                        {
+                                            if (point.X < rectangle.X && rectangle.X - point.X < FADE)
+                                            {
+                                                opacity = MainWindow.Lerp(1.0, MIN_OP, (rectangle.X - point.X) / FADE);
+                                            }
+                                            else if (point.X > rectangle.Right && point.X - rectangle.Right < FADE)
+                                            {
+                                                opacity = MainWindow.Lerp(1.0, MIN_OP,
+                                                    (point.X - rectangle.Right) / FADE);
+                                            }
+                                        }
+                                        else if (point.Y < rectangle.Y)
+                                        {
+                                            if (point.X >= rectangle.X && point.X <= rectangle.Right)
+                                            {
+                                                if (rectangle.Y - point.Y < FADE)
+                                                {
+                                                    opacity = MainWindow.Lerp(1.0, MIN_OP,
+                                                        (rectangle.Y - point.Y) / FADE);
+                                                }
+                                            }
+                                            else if (rectangle.X > point.X || rectangle.Right < point.X)
+                                            {
+                                                var distance =
+                                                    Math.Sqrt(
+                                                        Math.Pow(
+                                                            (point.X < rectangle.X ? rectangle.X : rectangle.Right) -
+                                                            point.X, 2) +
+                                                        Math.Pow(rectangle.Y - point.Y, 2));
+                                                if (distance < FADE)
+                                                {
+                                                    opacity = MainWindow.Lerp(1.0, MIN_OP, distance / FADE);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            this.Dispatcher.Invoke(() => { this.Opacity = opacity; });
+                        }
+
+                        var hidePressed = false;
+                        var exitPressed = false;
+                        var settingsPressed = false;
+                        // Set position anew to correct for fullscreen apps hiding taskbar
+                        this.Dispatcher.Invoke(() =>
+                        {
+                            this.SetPosition(this.MonikaScreen);
+                            rectangle = new Rectangle((int)this.Left, (int)this.Top, (int)this.Width,
+                                (int)this.Height);
+
+                            // Detect exit key combo
+                            hidePressed = this.AreKeysPressed(MonikaiSettings.Default.HotkeyHide);
+                            exitPressed = this.AreKeysPressed(MonikaiSettings.Default.HotkeyExit);
+                            settingsPressed = this.AreKeysPressed(MonikaiSettings.Default.HotkeySettings);
+                        });
+
+
+                        if (hidePressed && (DateTime.Now - this.lastKeyComboTime).TotalSeconds > 2)
+                        {
+                            this.lastKeyComboTime = DateTime.Now;
+
+                            if (this.Visibility == Visibility.Visible)
+                            {
+                                this.Dispatcher.Invoke(this.Hide);
+                                //var expression =
+                                //    new Expression(
+                                //        "Okay, see you later {name}! (Press again for me to return)", "b");
+                                //expression.Executed += (o, args) => { this.Dispatcher.Invoke(this.Hide); };
+                                //this.Say(new[] {expression});
+                            }
+                            else
+                            {
+                                this.Dispatcher.Invoke(this.Show);
+                            }
+                        }
+
+                        if (exitPressed)
+                        {
+                            var expression =
+                                new Expression(
+                                    "Goodbye for now! Come back soon please~", "b");
+                            MonikaiSettings.Default.IsColdShutdown = false;
+                            MonikaiSettings.Default.Save();
+                            expression.Executed += (o, args) =>
+                            {
+                                this.Dispatcher.Invoke(() => { Environment.Exit(0); });
+                            };
+                            this.Say(new[] { expression });
+                        }
+
+                        if (settingsPressed)
+                        {
+                            this.Dispatcher.Invoke(() =>
+                            {
+                                if (this.settingsWindow == null || !this.settingsWindow.IsVisible)
+                                {
+                                    this.settingsWindow = new SettingsWindow(this);
+                                    this.settingsWindow.Show();
+                                }
+                            });
+                        }
+
+                        await Task.Delay(MonikaiSettings.Default.PotatoPC ? 100 : 32);
+                    }
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
+            });
         }
 
         private static void DoTheThing()
@@ -511,6 +609,9 @@ namespace MonikAI
                 return;
             }
 
+            var wpfDpi = PresentationSource.FromVisual(this)?.CompositionTarget?.TransformToDevice.M11;
+            this.dpiScale = 1f / (float)wpfDpi.GetValueOrDefault(1);
+
             if (!this.initializedScales)
             {
                 this.initializedScales = true;
@@ -528,6 +629,7 @@ namespace MonikAI
             }
 
             var scaleRatio = this.MonikaScreen.Bounds.Height / 1080.0 * MonikaiSettings.Default.ScaleModifier;
+            scaleRatio *= this.dpiScale;
             this.Width = this.scaleBaseWidth * scaleRatio;
             this.Height = this.scaleBaseHeight * scaleRatio;
             this.facePicture.Width = this.scaleBaseFacePictureWidth * scaleRatio;
@@ -539,9 +641,9 @@ namespace MonikAI
             this.textPicture.Height = this.scaleBaseTextPictureHeight * scaleRatio;
             this.textPicture.Margin = new Thickness(this.baseTextThickness.Left * scaleRatio,
                 this.baseTextThickness.Top * scaleRatio, this.textPicture.Margin.Right, this.textPicture.Margin.Bottom);
-            this.textBox.Height = this.scaleBaseTextBoxHeight * scaleRatio;
+            this.textBox.Height = this.scaleBaseTextBoxHeight * scaleRatio * 1.05;
             this.textBox.Width = this.scaleBaseTextBoxWidth * scaleRatio;
-            this.textBox.FontSize = this.scaleBaseTextBoxFontSize * scaleRatio;
+            this.textBox.FontSize = this.scaleBaseTextBoxFontSize * scaleRatio * 0.95;
         }
 
         private void RegisterBehaviours(object sender, EventArgs eventArgs)
@@ -563,19 +665,19 @@ namespace MonikAI
             // Override position if necessary
             if (MonikaiSettings.Default.ManualPosition)
             {
-                this.Top = MonikaiSettings.Default.ManualPositionY;
-                this.Left = MonikaiSettings.Default.ManualPositionX;
+                this.Top = MonikaiSettings.Default.ManualPositionY * this.dpiScale;
+                this.Left = MonikaiSettings.Default.ManualPositionX * this.dpiScale;
                 return;
             }
 
             // Only update screen ever so often, but necessary to avoid taskbar glitches
-            if (DateTime.Now.Second % 3 == 0 && (this.settingsWindow == null || !this.settingsWindow.IsVisible))
+            if (DateTime.Now.Second % (MonikaiSettings.Default.PotatoPC ? 10 : 3) == 0 && (this.settingsWindow == null || !this.settingsWindow.IsVisible))
             {
                 this.UpdateMonikaScreen();
             }
 
-            var position = new System.Windows.Point(screen.Bounds.X + screen.Bounds.Width - this.Width,
-                screen.Bounds.Y + screen.Bounds.Height - this.Height);
+            var position = new System.Windows.Point(screen.Bounds.X + screen.Bounds.Width - this.Width * (1 / this.dpiScale),
+                screen.Bounds.Y + screen.Bounds.Height - this.Height * (1 / this.dpiScale));
 
             if (MonikaiSettings.Default.LeftAlign)
             {
@@ -617,8 +719,8 @@ namespace MonikAI
                 }
             }
 
-            this.Top = position.Y;
-            this.Left = position.X;
+            this.Top = position.Y * this.dpiScale;
+            this.Left = position.X * this.dpiScale;
         }
 
         [DllImport("user32.dll")]
@@ -860,6 +962,7 @@ namespace MonikAI
             return dockedRects;
         }
 
+<<<<<<< HEAD
         private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
             var handle = new WindowInteropHelper(this).Handle;
@@ -1017,6 +1120,8 @@ namespace MonikAI
             });
         }
 
+=======
+>>>>>>> upstream/master
         private bool AreKeysPressed(string combo)
         {
             // Prevent keypresses from propagating through the Settings Window to allow for Hotkey Settings

@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
-using System.Windows.Automation;
+using MonikAI.Behaviours.HttpRestServer;
 using MonikAI.Parsers;
 using MonikAI.Parsers.Models;
 using ResponseTuple = System.Tuple<System.Collections.Generic.List<MonikAI.Expression[]>, System.DateTime>;
@@ -18,7 +17,7 @@ namespace MonikAI.Behaviours
     public class WebBrowserBehaviour : IBehaviour
     {
         // Translation table for shortened URLs
-        private readonly Dictionary<string,string> unshorteningDictionary = new Dictionary<string, string>
+        private readonly Dictionary<string, string> unshorteningDictionary = new Dictionary<string, string>
         {
             {"youtu.be", "youtube.com"}
         };
@@ -38,7 +37,7 @@ namespace MonikAI.Behaviours
         private string lastUrl = string.Empty;
 
         private int executionCounter = 0;
-        private const int EXECUTION_LIMIT = 8;
+        private const int EXECUTION_LIMIT = 4;
 
         public void Init(MainWindow window)
         {
@@ -76,11 +75,11 @@ namespace MonikAI.Behaviours
                 if (this.responseTable.ContainsKey(trigger))
                 {
                     var entry = this.responseTable[trigger];
-                    this.responseTable[trigger] = new ResponseTuple(entry.Item1.Concat(new[]{response.ResponseChain.ToArray()}).ToList(), entry.Item2);
+                    this.responseTable[trigger] = new ResponseTuple(entry.Item1.Concat(new[] { response.ResponseChain.ToArray() }).ToList(), entry.Item2);
                 }
                 else
                 {
-                    this.responseTable.Add(trigger, new ResponseTuple(new List<Expression[]>{response.ResponseChain.ToArray()}, DateTime.MinValue));
+                    this.responseTable.Add(trigger, new ResponseTuple(new List<Expression[]> { response.ResponseChain.ToArray() }, DateTime.MinValue));
                 }
             }
         }
@@ -130,32 +129,17 @@ namespace MonikAI.Behaviours
 
             var changed = false;
 
-            var firefox = this.GetFirefoxURL();
-            if (!string.IsNullOrWhiteSpace(firefox))
+            var url = this.GetURL();
+            if (!string.IsNullOrWhiteSpace(url))
             {
-                firefox = firefox.ToLower().Trim();
+                url = url.ToLower().Trim();
 
-                if (this.lastUrl != firefox)
+                if (this.lastUrl != url)
                 {
                     changed = true;
                 }
 
-                this.lastUrl = firefox;
-            }
-            else
-            {
-                var chrome = this.GetChromeURL();
-                if (!string.IsNullOrWhiteSpace(chrome))
-                {
-                    chrome = chrome.ToLower().Trim();
-
-                    if (this.lastUrl != chrome)
-                    {
-                        changed = true;
-                    }
-
-                    this.lastUrl = chrome;
-                }
+                this.lastUrl = url;
             }
 
             if (changed)
@@ -205,7 +189,7 @@ namespace MonikAI.Behaviours
                     }
                     return;
                 }
-                
+
                 //Holds all responses to be weighted
                 var matches = new List<Match>();
                 // Url changed, respond accordingly
@@ -239,7 +223,7 @@ namespace MonikAI.Behaviours
 
                 //Select a match by weight
                 Match selected = new Match();
-                foreach(Match m in matches)
+                foreach (Match m in matches)
                 {
                     if (rand < m.weight)
                     {
@@ -258,6 +242,12 @@ namespace MonikAI.Behaviours
             }
         }
 
+        private string GetURL()
+        {
+            //get the latest url
+            return UrlServer.URL;
+        }
+
         //Struct for the weighted matches
         private struct Match
         {
@@ -273,64 +263,64 @@ namespace MonikAI.Behaviours
             }
         }
 
-        private string GetFirefoxURL()
-        {
-            try
-            {
-                var firefoxProcesses = Process.GetProcessesByName("firefox");
-                foreach (var firefoxProcess in firefoxProcesses.Where(x => x.MainWindowHandle != IntPtr.Zero))
-                {
-                    var element = AutomationElement.FromHandle(firefoxProcess.MainWindowHandle);
-                    element = element.FindFirst(TreeScope.Subtree,
-                        new AndCondition(
-                            new PropertyCondition(AutomationElement.NameProperty, "Search or enter address"),
-                            new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Edit)));
-                    var url = ((ValuePattern) element.GetCurrentPattern(ValuePattern.Pattern)).Current.Value;
-                    return url;
-                }
-                return "";
-            }
-            catch
-            {
-                return "";
-            }
-        }
+        //private string GetFirefoxURL()
+        //{
+        //    try
+        //    {
+        //        var firefoxProcesses = Process.GetProcessesByName("firefox");
+        //        foreach (var firefoxProcess in firefoxProcesses.Where(x => x.MainWindowHandle != IntPtr.Zero))
+        //        {
+        //            var element = AutomationElement.FromHandle(firefoxProcess.MainWindowHandle);
+        //            element = element.FindFirst(TreeScope.Subtree,
+        //                new AndCondition(
+        //                    new PropertyCondition(AutomationElement.NameProperty, "Search or enter address"),
+        //                    new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Edit)));
+        //            var url = ((ValuePattern) element.GetCurrentPattern(ValuePattern.Pattern)).Current.Value;
+        //            return url;
+        //        }
+        //        return "";
+        //    }
+        //    catch
+        //    {
+        //        return "";
+        //    }
+        //}
 
-        public string GetChromeURL()
-        {
-            try
-            {
-                var procsChrome = Process.GetProcessesByName("chrome");
+        //public string GetChromeURL()
+        //{
+        //    try
+        //    {
+        //        var procsChrome = Process.GetProcessesByName("chrome");
 
-                if (procsChrome.Length <= 0)
-                {
-                    return "";
-                }
+        //        if (procsChrome.Length <= 0)
+        //        {
+        //            return "";
+        //        }
 
-                foreach (var proc in procsChrome)
-                {
-                    // the chrome process must have a window 
-                    if (proc.MainWindowHandle == IntPtr.Zero)
-                    {
-                        continue;
-                    }
+        //        foreach (var proc in procsChrome)
+        //        {
+        //            // the chrome process must have a window 
+        //            if (proc.MainWindowHandle == IntPtr.Zero)
+        //            {
+        //                continue;
+        //            }
 
-                    // to find the tabs we first need to locate something reliable - the 'New Tab' button 
-                    var root = AutomationElement.FromHandle(proc.MainWindowHandle);
-                    var searchBar = root.FindFirst(TreeScope.Descendants,
-                        new PropertyCondition(AutomationElement.NameProperty, "Address and search bar"));
-                    if (searchBar != null)
-                    {
-                        return (string)searchBar.GetCurrentPropertyValue(ValuePatternIdentifiers.ValueProperty);
-                    }
-                }
+        //            // to find the tabs we first need to locate something reliable - the 'New Tab' button 
+        //            var root = AutomationElement.FromHandle(proc.MainWindowHandle);
+        //            var searchBar = root.FindFirst(TreeScope.Descendants,
+        //                new PropertyCondition(AutomationElement.NameProperty, "Address and search bar"));
+        //            if (searchBar != null)
+        //            {
+        //                return (string)searchBar.GetCurrentPropertyValue(ValuePatternIdentifiers.ValueProperty);
+        //            }
+        //        }
 
-                return "";
-            }
-            catch
-            {
-                return "";
-            }
-        }
+        //        return "";
+        //    }
+        //    catch
+        //    {
+        //        return "";
+        //    }
+        //}
     }
 }

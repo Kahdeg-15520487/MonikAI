@@ -85,20 +85,25 @@ namespace MonikAI
             var localConfig =
                 JsonConvert.DeserializeObject<UpdateConfig>(MonikaiSettings.Default.LastUpdateConfig);
 
-            //disable updater cause we dont use the base binary
-//            if (localConfig.ProgramVersion < onlineConfig.ProgramVersion)
-//            {
-//#if !DEBUG
-//                // Program update
-//                this.downloadTasks.Add(Task.Run(async () =>
-//                {
-//                    this.updateProgram = true;
-//                    var path = Path.Combine(Updater.StatePath, "MonikAI.exe");
-//                    var c = new WebClient();
-//                    await c.DownloadFileTaskAsync(onlineConfig.ProgramURL, path);
-//                }));
-//#endif
-//            }
+            if (localConfig.ProgramVersion < onlineConfig.ProgramVersion)
+            {
+#if !DEBUG
+                // Program update
+                this.downloadTasks.Add(Task.Run(async () =>
+                {
+                    // Hotfix haha don't murder me plz
+                    if (onlineConfig.ProgramVersion == 19)
+                    {
+                        File.WriteAllText("firstlaunch.txt", "");
+                    }
+
+                    this.updateProgram = true;
+                    var path = Path.Combine(Updater.StatePath, "MonikAI.exe");
+                    var c = new WebClient();
+                    await c.DownloadFileTaskAsync(onlineConfig.ProgramURL, path);
+                }));
+#endif
+            }
 
             // Note: CSV update also occurs when application is first launched or the data directory has been deleted
             if (localConfig.ResponsesVersion < onlineConfig.ResponsesVersion || !dirExisted ||
